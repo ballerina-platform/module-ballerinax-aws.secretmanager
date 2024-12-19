@@ -17,3 +17,9 @@ groupId = "io.ballerina.lib"
 artifactId = "aws.secretmanager-native"
 version = "@project.version@"
 path = "../native/build/libs/aws.secretmanager-native-@project.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "time-native"
+version = "@time.native.version@"
+path = "./lib/time-native-@time.native.version@.jar"

@@ -52,10 +52,19 @@ ballerina {
     platform = "java17"
 }
 
+configurations {
+    externalJars
+}
+
+dependencies {
+    externalJars(group: 'io.ballerina.stdlib', name: 'time-native', version: "${stdlibTimeVersion}")
+}
+
 task updateTomlFiles {
     doLast {
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
+        newBallerinaToml = newBallerinaToml.replace('@time.native.version@', project.stdlibTimeVersion)
         ballerinaTomlFile.text = newBallerinaToml
     }
 }
