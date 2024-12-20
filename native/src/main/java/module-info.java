@@ -16,7 +16,7 @@
  * under the License.
  */
 
-module io.ballerina.lib.aws.secretsmanager {
+module io.ballerina.lib.aws.secretmanager {
     requires io.ballerina.runtime;
     requires io.ballerina.lang.value;
     requires io.ballerina.stdlib.time;
@@ -25,6 +25,7 @@ module io.ballerina.lib.aws.secretsmanager {
     requires software.amazon.awssdk.services.secretsmanager;
     requires software.amazon.awssdk.awscore;
     requires software.amazon.awssdk.core;
+    requires software.amazon.awssdk.http;
 
-    exports io.ballerina.lib.aws.secretsmanager;
+    exports io.ballerina.lib.aws.secretmanager;
 }
