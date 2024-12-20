@@ -9,6 +9,17 @@ distribution-version = "2201.10.0"
 
 [[package]]
 org = "ballerina"
+name = "constraint"
+version = "1.5.0"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "constraint", moduleName = "constraint"}
+]
+
+[[package]]
+org = "ballerina"
 name = "jballerina.java"
 version = "0.0.0"
 modules = [
@@ -16,11 +27,24 @@ modules = [
 ]
 
 [[package]]
+org = "ballerina"
+name = "time"
+version = "2.5.0"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "time", moduleName = "time"}
+]
+
+[[package]]
 org = "ballerinax"
 name = "aws.secretmanager"
 version = "0.1.0"
 dependencies = [
-	{org = "ballerina", name = "jballerina.java"}
+	{org = "ballerina", name = "constraint"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "time"}
 ]
 modules = [
 	{org = "ballerinax", packageName = "aws.secretmanager", moduleName = "aws.secretmanager"}
