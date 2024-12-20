@@ -35,7 +35,7 @@ Create a new `secretmanager:Client` by providing the access key ID, secret acces
 configurable string accessKeyId = ?;
 configurable string secretAccessKey = ?;
 
-secretmanager:Client mpe = check new(region = mpe:US_EAST_1, auth = {
+secretmanager:Client secretmanager = check new(region = secretmanager:US_EAST_1, auth = {
     accessKeyId,
     secretAccessKey
 });
