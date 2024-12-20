@@ -1,0 +1,25 @@
+[package]
+distribution = "2201.10.0"
+org = "ballerinax"
+name = "aws.secretmanager"
+version = "@toml.version@"
+license= ["Apache-2.0"]
+authors = ["Ballerina"]
+keywords = ["AWS", "Secret Manager", "Cloud/Subscriptions"]
+icon = "icon.png"
+repository = "https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager"
+
+[platform.java17]
+graalvmCompatible = true
+
+[[platform.java17.dependency]]
+groupId = "io.ballerina.lib"
+artifactId = "aws.secretmanager-native"
+version = "@project.version@"
+path = "../native/build/libs/aws.secretmanager-native-@project.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "time-native"
+version = "@time.native.version@"
+path = "./lib/time-native-@time.native.version@.jar"
