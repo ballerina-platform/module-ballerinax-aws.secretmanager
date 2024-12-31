@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/constraint;
 
 # AWS Secret Manger client.
 public isolated client class Client {
@@ -36,6 +37,30 @@ public isolated client class Client {
     isolated function externInit(ConnectionConfig configs) returns Error? =
     @java:Method {
         name: "init",
+        'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
+    } external;
+
+
+    # Retrieves the details of a secret. It does not include the encrypted secret value. 
+    # Secrets Manager only returns fields that have a value in the response. 
+    # ```ballerina
+    # secretmanager:DescribeSecretResponse response = check secretmanager->describeSecret("<aws-secret-id>");
+    # ```
+    #
+    # + secretId - The ARN or name of the secret
+    # + return - An `secretmanager:DescribeSecretResponse` containing the details of the secret, 
+    # or an `secretmanager:Error` if the request validation or the operation failed.
+    remote function describeSecret(SecretId secretId) returns DescribeSecretResponse|Error {
+        SecretId|constraint:Error validated = constraint:validate(secretId);
+        if validated is constraint:Error {
+            return error Error(string `Request validation failed: ${validated.message()}`);
+        }
+        return self.externDescribeSecret(validated);
+    }
+
+    isolated function externDescribeSecret(SecretId secretId) returns DescribeSecretResponse|Error = 
+    @java:Method {
+        name: "describeSecret",
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
     } external;
 

@@ -35,4 +35,44 @@ public interface Constants {
     BString SECRET_MNG_ERROR_DETAILS_HTTP_STATUS_TXT = StringUtils.fromString("httpStatusText");
     BString SECRET_MNG_ERROR_DETAILS_ERR_CODE = StringUtils.fromString("errorCode");
     BString SECRET_MNG_ERROR_DETAILS_ERR_MSG = StringUtils.fromString("errorMessage");
+
+    // Constants related to Secret Manager `DescribeSecretResponse`
+    String SECRET_MNG_DESC_SECRET_RECORD = "DescribeSecretResponse";
+    BString SECRET_MNG_DESC_SECRET_ARN = StringUtils.fromString("arn");
+    BString SECRET_MNG_DESC_SECRET_CREATED_DATE = StringUtils.fromString("createdDate");
+    BString SECRET_MNG_DESC_SECRET_DELETED_DATE = StringUtils.fromString("deletedDate");
+    BString SECRET_MNG_DESC_SECRET_DESCRIPTION = StringUtils.fromString("description");
+    BString SECRET_MNG_DESC_SECRET_KMS_KEY_ID = StringUtils.fromString("kmsKeyId");
+    BString SECRET_MNG_DESC_SECRET_LAST_ACCESSED = StringUtils.fromString("lastAccessedDate");
+    BString SECRET_MNG_DESC_SECRET_LAST_CHANGED = StringUtils.fromString("lastChangedDate");
+    BString SECRET_MNG_DESC_SECRET_LAST_ROTATED = StringUtils.fromString("lastRotatedDate");
+    BString SECRET_MNG_DESC_SECRET_NAME = StringUtils.fromString("name");
+    BString SECRET_MNG_DESC_SECRET_NXT_ROTATION = StringUtils.fromString("nextRotationDate");
+    BString SECRET_MNG_DESC_SECRET_OWNING_SVC = StringUtils.fromString("owningService");
+    BString SECRET_MNG_DESC_SECRET_PRIMARY_RGN = StringUtils.fromString("primaryRegion");
+    BString SECRET_MNG_DESC_SECRET_REPLICATION_STATUS = StringUtils.fromString("replicationStatus");
+    BString SECRET_MNG_DESC_SECRET_ROTATION_ENABLED = StringUtils.fromString("rotationEnabled");
+    BString SECRET_MNG_DESC_SECRET_ROTATION_LAMBDA_ARN = StringUtils.fromString("rotationLambdaArn");
+    BString SECRET_MNG_DESC_SECRET_ROTATION_RULES = StringUtils.fromString("rotationRules");
+    BString SECRET_MNG_DESC_SECRET_TAGS = StringUtils.fromString("tags");
+    BString SECRET_MNG_DESC_SECRET_VERSION_TO_STAGES = StringUtils.fromString("versionToStages");
+
+    // Constants related to Secret Manager `ReplicationStatus`
+    String SECRET_MNG_REPLICATION_STATUS_RECORD = "ReplicationStatus";
+    BString SECRET_MNG_REPLICATION_STATUS_KMS_KEY_ID = StringUtils.fromString("kmsKeyId");
+    BString SECRET_MNG_REPLICATION_STATUS_LAST_ACCESSED = StringUtils.fromString("lastAccessedDate");
+    BString SECRET_MNG_REPLICATION_STATUS_RGN = StringUtils.fromString("region");
+    BString SECRET_MNG_REPLICATION_STATUS_STATUS = StringUtils.fromString("status");
+    BString SECRET_MNG_REPLICATION_STATUS_STATUS_MSG = StringUtils.fromString("statusMessage");
+
+    // Constants related to Secret Manager `RotationRules`
+    String SECRET_MNG_ROTATION_RULES_RECORD = "RotationRules";
+    BString SECRET_MNG_ROTATION_RULES_AUTOMATICALLY_AFTER_DAYS = StringUtils.fromString("automaticallyAfterDays");
+    BString SECRET_MNG_ROTATION_RULES_DURATION = StringUtils.fromString("duration");
+    BString SECRET_MNG_ROTATION_RULES_SCHEDULE_EXPR = StringUtils.fromString("scheduleExpresssion");
+
+    // Constants related to Secret Manager `Tag`
+    String SECRET_MNG_TAG_RECORD = "Tag";
+    BString SECRET_MNG_TAG_KEY = StringUtils.fromString("key");
+    BString SECRET_MNG_TAG_VALUE = StringUtils.fromString("value");
 }

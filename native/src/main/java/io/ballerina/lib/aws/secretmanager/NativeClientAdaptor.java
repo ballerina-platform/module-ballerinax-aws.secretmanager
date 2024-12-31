@@ -18,6 +18,9 @@
 
 package io.ballerina.lib.aws.secretmanager;
 
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -27,15 +30,20 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Representation of {@link software.amazon.awssdk.services.secretsmanager.SecretsManagerClient} with
  * utility methods to invoke as inter-op functions.
  */
 public class NativeClientAdaptor {
-//    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(new AwsMpeThreadFactory());
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(
+            new AwsSecretMngThreadFactory());
 
     private NativeClientAdaptor() {
     }
@@ -72,6 +80,37 @@ public class NativeClientAdaptor {
         } else {
             return AwsBasicCredentials.create(connectionConfig.accessKeyId(), connectionConfig.secretAccessKey());
         }
+    }
+
+    /**
+     * Retrieves the details of a secret. It does not include the encrypted secret value. Secrets Manager only returns
+     * fields that have a value in the response.
+     *
+     * @param env The Ballerina runtime environment.
+     * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
+     * @param secretId  The ARN or name of the secret.
+     * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
+     *      Secret Manager describe-secret response.
+     */
+    public static Object describeSecret(Environment env, BObject bAwsSecretMngClient, BString secretId) {
+        SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
+                .getNativeData(Constants.NATIVE_CLIENT);
+        DescribeSecretRequest describeSecretRequest = DescribeSecretRequest.builder().secretId(secretId.getValue())
+                .build();
+        Future future = env.markAsync();
+        EXECUTOR_SERVICE.execute(() -> {
+            try {
+                DescribeSecretResponse describeSecretResponse = nativeClient.describeSecret(describeSecretRequest);
+                BMap<BString, Object> bResponse = CommonUtils.getDescribeSecretResponse(describeSecretResponse);
+                future.complete(bResponse);
+            } catch (Exception e) {
+                String errorMsg = String.format("Error occurred while executing describe-secret request: %s",
+                        e.getMessage());
+                BError bError = CommonUtils.createError(errorMsg, e);
+                future.complete(bError);
+            }
+        });
+        return null;
     }
 
     /**
