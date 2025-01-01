@@ -39,8 +39,8 @@ public interface Constants {
     // Constants related to Secret Manager `DescribeSecretResponse`
     String SECRET_MNG_DESC_SECRET_RECORD = "DescribeSecretResponse";
     BString SECRET_MNG_DESC_SECRET_ARN = StringUtils.fromString("arn");
-    BString SECRET_MNG_DESC_SECRET_CREATED_DATE = StringUtils.fromString("createdDate");
-    BString SECRET_MNG_DESC_SECRET_DELETED_DATE = StringUtils.fromString("deletedDate");
+    BString SECRET_MNG_DESC_SECRET_CREATED = StringUtils.fromString("createdDate");
+    BString SECRET_MNG_DESC_SECRET_DELETED = StringUtils.fromString("deletedDate");
     BString SECRET_MNG_DESC_SECRET_DESCRIPTION = StringUtils.fromString("description");
     BString SECRET_MNG_DESC_SECRET_KMS_KEY_ID = StringUtils.fromString("kmsKeyId");
     BString SECRET_MNG_DESC_SECRET_LAST_ACCESSED = StringUtils.fromString("lastAccessedDate");
@@ -75,4 +75,18 @@ public interface Constants {
     String SECRET_MNG_TAG_RECORD = "Tag";
     BString SECRET_MNG_TAG_KEY = StringUtils.fromString("key");
     BString SECRET_MNG_TAG_VALUE = StringUtils.fromString("value");
+
+    // Constants related to Secret Manager `GetSecretValueRequest`
+    BString SECRET_MNG_GET_SECRET_VALUE_SECRET_ID = StringUtils.fromString("secretId");
+    BString SECRET_MNG_GET_SECRET_VALUE_VERSION_ID = StringUtils.fromString("versionId");
+    BString SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE = StringUtils.fromString("versionStage");
+
+    // Constants related to Secret Manager `SecretValue`
+    String SECRET_MNG_SECRET_VALUE_RECORD = "SecretValue";
+    BString SECRET_MNG_SECRET_VALUE_ARN = StringUtils.fromString("arn");
+    BString SECRET_MNG_SECRET_VALUE_CREATED = StringUtils.fromString("createdDate");
+    BString SECRET_MNG_SECRET_VALUE_NAME = StringUtils.fromString("name");
+    BString SECRET_MNG_SECRET_VALUE_VALUE = StringUtils.fromString("value");
+    BString SECRET_MNG_SECRET_VALUE_VERSION_ID = StringUtils.fromString("versionId");
+    BString SECRET_MNG_SECRET_VALUE_VERSION_STAGES = StringUtils.fromString("versionStages");
 }

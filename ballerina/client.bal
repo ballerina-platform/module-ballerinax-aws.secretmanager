@@ -49,7 +49,7 @@ public isolated client class Client {
     #
     # + secretId - The ARN or name of the secret
     # + return - An `secretmanager:DescribeSecretResponse` containing the details of the secret, 
-    # or an `secretmanager:Error` if the request validation or the operation failed.
+    # or an `secretmanager:Error` if the request validation or the operation failed
     remote function describeSecret(SecretId secretId) returns DescribeSecretResponse|Error {
         SecretId|constraint:Error validated = constraint:validate(secretId);
         if validated is constraint:Error {
@@ -61,6 +61,28 @@ public isolated client class Client {
     isolated function externDescribeSecret(SecretId secretId) returns DescribeSecretResponse|Error = 
     @java:Method {
         name: "describeSecret",
+        'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
+    } external;
+
+    # Retrieves the contents of the encrypted fields from the specified version of a secret.
+    # ```ballerina
+    # secretmanager:SecretValue secret = check secretmanager->getSecretValue(secretId = "<aws-secret-id>");
+    # ```
+    #  
+    # + request - The request object containing the details to identify the secret
+    # + return - An `secretmanager:SecretValue` containing the content of the secret, or an 
+    # `secretmanager:Error` if the request validation or the operation failed
+    remote function getSecretValue(*GetSecretValueRequest request) returns SecretValue|Error {
+        GetSecretValueRequest|constraint:Error validated = constraint:validate(request);
+        if validated is constraint:Error {
+            return error Error(string `Request validation failed: ${validated.message()}`);
+        }
+        return self.externGetSecretValue(validated);
+    }
+
+    isolated function externGetSecretValue(*GetSecretValueRequest request) returns SecretValue|Error = 
+    @java:Method {
+        name: "getSecretValue",
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
     } external;
 

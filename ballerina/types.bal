@@ -172,3 +172,41 @@ public enum StagingStatus {
     # Indicates the previous current version of the secret
     AWSPREVIOUS
 }
+
+# # Represents the request to retrieve a secret value from AWS Secrets Manager.
+public type GetSecretValueRequest record {|
+    # The ARN or name of the secret
+    @constraint:String {
+        minLength: 1,
+        maxLength: 2048
+    }
+    string secretId;
+    # The unique identifier of the version of the secret
+    @constraint:String {
+        minLength: 32,
+        maxLength: 64
+    }
+    string versionId?;
+    # The staging label of the version of the secret
+    @constraint:String {
+        minLength: 1,
+        maxLength: 256
+    }
+    string versionStage?;
+|};
+
+# Represents the details of a secret retrieved from AWS Secrets Manager.
+public type SecretValue record {|
+    # The ARN of the secret
+    string arn;
+    # The date and time that this version of the secret was created
+    time:Utc createdDate;
+    # The friendly name of the secret
+    string name;
+    # The decrypted secret value
+    byte[]|string value;
+    # The unique identifier of this version of the secret
+    string versionId;
+    # A list of all of the staging labels currently attached to this version of the secret
+    string[] versionStages;
+|};

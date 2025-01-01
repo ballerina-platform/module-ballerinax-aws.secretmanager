@@ -32,6 +32,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -90,7 +92,7 @@ public class NativeClientAdaptor {
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
      * @param secretId  The ARN or name of the secret.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
-     *      Secret Manager describe-secret response.
+     *      Secret Manager `DescribeSecretResponse`.
      */
     public static Object describeSecret(Environment env, BObject bAwsSecretMngClient, BString secretId) {
         SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
@@ -105,6 +107,35 @@ public class NativeClientAdaptor {
                 future.complete(bResponse);
             } catch (Exception e) {
                 String errorMsg = String.format("Error occurred while executing describe-secret request: %s",
+                        e.getMessage());
+                BError bError = CommonUtils.createError(errorMsg, e);
+                future.complete(bError);
+            }
+        });
+        return null;
+    }
+
+    /**
+     * Retrieves the contents of the encrypted fields from the specified version of a secret.
+     *
+     * @param env The Ballerina runtime environment.
+     * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
+     * @param request The Ballerina AWS Secret Manager `GetSecretValueRequest` request.
+     * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
+     *      Secret Manager `SecretValue`.
+     */
+    public static Object getSecretValue(Environment env, BObject bAwsSecretMngClient, BMap<BString, Object> request) {
+        SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
+                .getNativeData(Constants.NATIVE_CLIENT);
+        GetSecretValueRequest getSecretValueRequest = CommonUtils.toNativeGetSecretValueRequest(request);
+        Future future = env.markAsync();
+        EXECUTOR_SERVICE.execute(() -> {
+            try {
+                GetSecretValueResponse getSecretValueResponse = nativeClient.getSecretValue(getSecretValueRequest);
+                BMap<BString, Object> bSecretValue = CommonUtils.getSecretValue(getSecretValueResponse);
+                future.complete(bSecretValue);
+            } catch (Exception e) {
+                String errorMsg = String.format("Error occurred while executing get-secret-value request: %s",
                         e.getMessage());
                 BError bError = CommonUtils.createError(errorMsg, e);
                 future.complete(bError);

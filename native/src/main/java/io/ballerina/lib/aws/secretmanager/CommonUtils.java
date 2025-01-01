@@ -34,6 +34,8 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.ReplicationStatusType;
 import software.amazon.awssdk.services.secretsmanager.model.RotationRulesType;
 import software.amazon.awssdk.services.secretsmanager.model.Tag;
@@ -88,12 +90,12 @@ public final class CommonUtils {
         describeSecretResp.put(
                 Constants.SECRET_MNG_DESC_SECRET_ARN, StringUtils.fromString(nativeResponse.arn()));
         describeSecretResp.put(
-                Constants.SECRET_MNG_DESC_SECRET_CREATED_DATE, new Utc(nativeResponse.createdDate()));
+                Constants.SECRET_MNG_DESC_SECRET_CREATED, new Utc(nativeResponse.createdDate()));
 
         Instant deletedDate = nativeResponse.deletedDate();
         if (Objects.nonNull(deletedDate)) {
             describeSecretResp.put(
-                    Constants.SECRET_MNG_DESC_SECRET_DELETED_DATE, new Utc(deletedDate));
+                    Constants.SECRET_MNG_DESC_SECRET_DELETED, new Utc(deletedDate));
         }
 
         describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_DESCRIPTION,
@@ -252,5 +254,43 @@ public final class CommonUtils {
             bTag.put(Constants.SECRET_MNG_TAG_VALUE, StringUtils.fromString(nativeTagValue));
         }
         return bTag;
+    }
+
+    public static GetSecretValueRequest toNativeGetSecretValueRequest(BMap<BString, Object> request) {
+        GetSecretValueRequest.Builder builder = GetSecretValueRequest.builder();
+        builder.secretId(request.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_SECRET_ID).getValue());
+        if (request.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID)) {
+            builder.versionId(request.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID).getValue());
+        }
+        if (request.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE)) {
+            builder.versionId(request.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE).getValue());
+        }
+        return builder.build();
+    }
+
+    public static BMap<BString, Object> getSecretValue(GetSecretValueResponse nativeResponse) {
+        BMap<BString, Object> secretValue = ValueCreator.createRecordValue(
+                ModuleUtils.getModule(), Constants.SECRET_MNG_SECRET_VALUE_RECORD);
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_ARN, StringUtils.fromString(nativeResponse.arn()));
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_CREATED, new Utc(nativeResponse.createdDate()));
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_NAME, StringUtils.fromString(nativeResponse.name()));
+
+        if (Objects.nonNull(nativeResponse.secretBinary())) {
+            secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_VALUE,
+                    ValueCreator.createArrayValue(nativeResponse.secretBinary().asByteArray()));
+        } else {
+            secretValue.put(
+                    Constants.SECRET_MNG_SECRET_VALUE_VALUE, StringUtils.fromString(nativeResponse.secretString()));
+        }
+
+        secretValue.put(
+                Constants.SECRET_MNG_SECRET_VALUE_VERSION_ID, StringUtils.fromString(nativeResponse.versionId()));
+
+        BString[] versionToStages = nativeResponse.versionStages().stream()
+                .map(StringUtils::fromString)
+                .toArray(BString[]::new);
+        secretValue.put(
+                Constants.SECRET_MNG_SECRET_VALUE_VERSION_STAGES, ValueCreator.createArrayValue(versionToStages));
+        return secretValue;
     }
 }
