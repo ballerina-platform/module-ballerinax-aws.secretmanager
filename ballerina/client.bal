@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/jballerina.java;
 import ballerina/constraint;
+import ballerina/jballerina.java;
 
 # AWS Secret Manger client.
 public isolated client class Client {
@@ -40,7 +40,6 @@ public isolated client class Client {
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
     } external;
 
-
     # Retrieves the details of a secret. It does not include the encrypted secret value. 
     # Secrets Manager only returns fields that have a value in the response. 
     # ```ballerina
@@ -58,7 +57,7 @@ public isolated client class Client {
         return self.externDescribeSecret(validated);
     }
 
-    isolated function externDescribeSecret(SecretId secretId) returns DescribeSecretResponse|Error = 
+    isolated function externDescribeSecret(SecretId secretId) returns DescribeSecretResponse|Error =
     @java:Method {
         name: "describeSecret",
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
@@ -68,7 +67,7 @@ public isolated client class Client {
     # ```ballerina
     # secretmanager:SecretValue secret = check secretmanager->getSecretValue(secretId = "<aws-secret-id>");
     # ```
-    #  
+    #
     # + request - The request object containing the details to identify the secret
     # + return - An `secretmanager:SecretValue` containing the content of the secret, or an 
     # `secretmanager:Error` if the request validation or the operation failed
@@ -80,14 +79,18 @@ public isolated client class Client {
         return self.externGetSecretValue(validated);
     }
 
-    isolated function externGetSecretValue(*GetSecretValueRequest request) returns SecretValue|Error = 
+    isolated function externGetSecretValue(*GetSecretValueRequest request) returns SecretValue|Error =
     @java:Method {
         name: "getSecretValue",
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
     } external;
 
     # Retrieves the contents of the encrypted fields for up to 20 secrets.
-    # 
+    # ```ballerina
+    # secretmanager:BatchGetSecretValueResponse secret = check secretmanager->batchGetSecretValue(
+    #    secretIds = ["<aws-secret-id>"]);
+    # ```
+    #
     # + request - The filters or secret IDs used to identify the secrets to retrieve
     # + return - An `secretmanager:BatchGetSecretValueResponse` containing the contents of the secrets, or an 
     # `secretmanager:Error` if the request validation or the operation failed
@@ -108,7 +111,7 @@ public isolated client class Client {
         return self.externBatchGetSecretValue(validated);
     }
 
-    isolated function externBatchGetSecretValue(*BatchGetSecretValueRequest request) returns BatchGetSecretValueResponse|Error = 
+    isolated function externBatchGetSecretValue(*BatchGetSecretValueRequest request) returns BatchGetSecretValueResponse|Error =
     @java:Method {
         name: "batchGetSecretValue",
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
@@ -118,7 +121,7 @@ public isolated client class Client {
     # ```ballerina
     # check secretmanager->close();
     # ```
-    # 
+    #
     # + return - A `secretmanager:Error` if there is an error while closing the client resources or else nil
     remote function close() returns Error? =
     @java:Method {

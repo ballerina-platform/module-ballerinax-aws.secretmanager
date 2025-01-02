@@ -168,7 +168,7 @@ public enum StagingStatus {
     # Indicates the version of the secret that contains 
     # new secret information that will become the next 
     # current version when rotation finishes
-    AWSPENDING, 
+    AWSPENDING,
     # Indicates the previous current version of the secret
     AWSPREVIOUS
 }
