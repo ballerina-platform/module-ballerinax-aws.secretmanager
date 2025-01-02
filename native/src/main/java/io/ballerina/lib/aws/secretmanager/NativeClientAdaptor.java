@@ -56,7 +56,7 @@ public class NativeClientAdaptor {
      * Creates an AWS Secret Manager native client with the provided configurations.
      *
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
-     * @param configurations AWS Secret Manager client connection configurations.
+     * @param configurations      AWS Secret Manager client connection configurations.
      * @return A Ballerina `secretmanager:Error` if failed to initialize the native client with the provided
      * configurations.
      */
@@ -90,11 +90,11 @@ public class NativeClientAdaptor {
      * Retrieves the details of a secret. It does not include the encrypted secret value. Secrets Manager only returns
      * fields that have a value in the response.
      *
-     * @param env The Ballerina runtime environment.
+     * @param env                 The Ballerina runtime environment.
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
-     * @param secretId  The ARN or name of the secret.
+     * @param secretId            The ARN or name of the secret.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
-     *      Secret Manager `secretmanager:DescribeSecretResponse`.
+     * Secret Manager `secretmanager:DescribeSecretResponse`.
      */
     public static Object describeSecret(Environment env, BObject bAwsSecretMngClient, BString secretId) {
         SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
@@ -120,11 +120,11 @@ public class NativeClientAdaptor {
     /**
      * Retrieves the contents of the encrypted fields from the specified version of a secret.
      *
-     * @param env The Ballerina runtime environment.
+     * @param env                 The Ballerina runtime environment.
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
-     * @param request The Ballerina AWS Secret Manager `GetSecretValueRequest` request.
+     * @param request             The Ballerina AWS Secret Manager `GetSecretValueRequest` request.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
-     *      Secret Manager `secretmanager:SecretValue`.
+     * Secret Manager `secretmanager:SecretValue`.
      */
     public static Object getSecretValue(Environment env, BObject bAwsSecretMngClient, BMap<BString, Object> request) {
         SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
@@ -149,11 +149,11 @@ public class NativeClientAdaptor {
     /**
      * Retrieves the contents of the encrypted fields for up to 20 secrets.
      *
-     * @param env The Ballerina runtime environment.
+     * @param env                 The Ballerina runtime environment.
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
-     * @param request The Ballerina AWS Secret Manager `BatchGetSecretValueRequest` request.
+     * @param request             The Ballerina AWS Secret Manager `BatchGetSecretValueRequest` request.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
-     *      Secret Manager `secretmanager:BatchGetSecretValueResponse`.
+     * Secret Manager `secretmanager:BatchGetSecretValueResponse`.
      */
     public static Object batchGetSecretValue(Environment env, BObject bAwsSecretMngClient,
                                              BMap<BString, Object> request) {
