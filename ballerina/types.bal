@@ -203,7 +203,7 @@ public type SecretValue record {|
     byte[]|string value;
     # The unique identifier of this version of the secret
     string versionId;
-    # A list of all of the staging labels currently attached to this version of the secret
+    # A list of all the staging labels currently attached to this version of the secret
     string[] versionStages;
 |};
 

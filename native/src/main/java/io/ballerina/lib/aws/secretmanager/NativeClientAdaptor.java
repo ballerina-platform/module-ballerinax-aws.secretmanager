@@ -134,8 +134,8 @@ public class NativeClientAdaptor {
         EXECUTOR_SERVICE.execute(() -> {
             try {
                 GetSecretValueResponse getSecretValueResponse = nativeClient.getSecretValue(getSecretValueRequest);
-                BMap<BString, Object> bSecretValue = CommonUtils.getSecretValue(getSecretValueResponse);
-                future.complete(bSecretValue);
+                BMap<BString, Object> bResponse = CommonUtils.getSecretValueResponse(getSecretValueResponse);
+                future.complete(bResponse);
             } catch (Exception e) {
                 String errorMsg = String.format("Error occurred while executing get-secret-value request: %s",
                         e.getMessage());
@@ -165,9 +165,8 @@ public class NativeClientAdaptor {
             try {
                 BatchGetSecretValueResponse getSecretValueResponse = nativeClient
                         .batchGetSecretValue(batchGetSecretValueRequest);
-                BMap<BString, Object> bBatchGetSecretValueRequest = CommonUtils
-                        .getBatchGetSecretValueResponse(getSecretValueResponse);
-                future.complete(bBatchGetSecretValueRequest);
+                BMap<BString, Object> bResponse = CommonUtils.getBatchGetSecretValueResponse(getSecretValueResponse);
+                future.complete(bResponse);
             } catch (Exception e) {
                 String errorMsg = String.format("Error occurred while executing batch-get-secret-value request: %s",
                         e.getMessage());

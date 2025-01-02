@@ -66,6 +66,9 @@ public final class CommonUtils {
     private static final RecordType API_ERR_REC_TYPE = TypeCreator.createRecordType(
             Constants.SECRET_MNG_API_ERR_RECORD, ModuleUtils.getModule(), SymbolFlags.PUBLIC, true, 0);
     private static final ArrayType API_ERR_ARR_TYPE = TypeCreator.createArrayType(API_ERR_REC_TYPE);
+    private static final RecordType SECRET_VALUE_REC_TYPE = TypeCreator.createRecordType(
+            Constants.SECRET_MNG_SECRET_VALUE_RECORD, ModuleUtils.getModule(), SymbolFlags.PUBLIC, true, 0);
+    private static final ArrayType SECRET_VALUE_ARR_TYPE = TypeCreator.createArrayType(API_ERR_REC_TYPE);
 
     private CommonUtils() {
     }
@@ -277,25 +280,27 @@ public final class CommonUtils {
         return builder.build();
     }
 
-    public static BMap<BString, Object> getSecretValue(GetSecretValueResponse nativeResponse) {
-        BMap<BString, Object> secretValue = ValueCreator.createRecordValue(
-                ModuleUtils.getModule(), Constants.SECRET_MNG_SECRET_VALUE_RECORD);
-        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_ARN, StringUtils.fromString(nativeResponse.arn()));
-        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_CREATED, new Utc(nativeResponse.createdDate()));
-        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_NAME, StringUtils.fromString(nativeResponse.name()));
+    public static BMap<BString, Object> getSecretValueResponse(GetSecretValueResponse nativeResponse) {
+        SecretValue nativeSecretValue = new SecretValue(nativeResponse);
+        return getSecretValue(nativeSecretValue);
+    }
 
-        if (Objects.nonNull(nativeResponse.secretBinary())) {
-            secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_VALUE,
-                    ValueCreator.createArrayValue(nativeResponse.secretBinary().asByteArray()));
-        } else {
+    private static BMap<BString, Object> getSecretValue(SecretValue nativeSecret) {
+        BMap<BString, Object> secretValue = ValueCreator.createRecordValue(SECRET_VALUE_REC_TYPE);
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_ARN, StringUtils.fromString(nativeSecret.arn()));
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_CREATED, new Utc(nativeSecret.createdDate()));
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_NAME, StringUtils.fromString(nativeSecret.name()));
+
+        if (Objects.nonNull(nativeSecret.binaryValue())) {
             secretValue.put(
-                    Constants.SECRET_MNG_SECRET_VALUE_VALUE, StringUtils.fromString(nativeResponse.secretString()));
+                    Constants.SECRET_MNG_SECRET_VALUE_VALUE, ValueCreator.createArrayValue(nativeSecret.binaryValue()));
+        } else {
+            secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_VALUE, StringUtils.fromString(nativeSecret.strValue()));
         }
 
-        secretValue.put(
-                Constants.SECRET_MNG_SECRET_VALUE_VERSION_ID, StringUtils.fromString(nativeResponse.versionId()));
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_VERSION_ID, StringUtils.fromString(nativeSecret.versionId()));
 
-        BString[] versionToStages = nativeResponse.versionStages().stream()
+        BString[] versionToStages = nativeSecret.versionStages().stream()
                 .map(StringUtils::fromString)
                 .toArray(BString[]::new);
         secretValue.put(
@@ -345,24 +350,34 @@ public final class CommonUtils {
         return builder.build();
     }
 
-    // todo: implement this method properly
     public static BMap<BString, Object> getBatchGetSecretValueResponse(BatchGetSecretValueResponse nativeResponse) {
         BMap<BString, Object> batchGetSecretValueResponse = ValueCreator.createRecordValue(
                 ModuleUtils.getModule(), Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_RECORD);
 
         List<APIErrorType> nativeErrors = nativeResponse.errors();
         if (Objects.nonNull(nativeErrors) && !nativeErrors.isEmpty()) {
-            BArray error = ValueCreator.createArrayValue(API_ERR_ARR_TYPE);
+            BArray errors = ValueCreator.createArrayValue(API_ERR_ARR_TYPE);
             nativeErrors.forEach(err -> {
                 BMap<BString, Object> apiError = getApiError(err);
-                error.append(apiError);
+                errors.append(apiError);
             });
-            batchGetSecretValueResponse.put(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_ERRORS, error);
+            batchGetSecretValueResponse.put(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_ERRORS, errors);
         }
 
         if (Objects.nonNull(nativeResponse.nextToken())) {
+            batchGetSecretValueResponse.put(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_NXT_TOKEN,
+                    StringUtils.fromString(nativeResponse.nextToken()));
+        }
+
+        List<SecretValueEntry> nativeSecretValues = nativeResponse.secretValues();
+        if (Objects.nonNull(nativeSecretValues) && !nativeSecretValues.isEmpty()) {
+            BArray secretValues = ValueCreator.createArrayValue(SECRET_VALUE_ARR_TYPE);
+            nativeSecretValues.stream().map(SecretValue::new).forEach(sv -> {
+                BMap<BString, Object> secretValue = getSecretValue(sv);
+                secretValues.append(secretValue);
+            });
             batchGetSecretValueResponse.put(
-                    Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_NXT_TOKEN, nativeResponse.nextToken());
+                    Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_SECRET_VALUES, secretValues);
         }
 
         return batchGetSecretValueResponse;

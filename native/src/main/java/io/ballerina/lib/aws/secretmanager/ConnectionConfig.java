@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * {@code ConnectionConfig} contains the java representation of the Ballerina AWS Secret Manager client configurations.
  *
- * @param region          The AWS region with which the connector should communicate
+ * @param region          The AWS region with which the connector should communicate.
  * @param accessKeyId     The AWS access key, used to identify the user interacting with AWS.
  * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
  * @param sessionToken    The AWS session token, retrieved from an AWS token service, used for authenticating that
