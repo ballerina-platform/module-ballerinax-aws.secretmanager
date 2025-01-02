@@ -33,14 +33,20 @@ import io.ballerina.stdlib.time.nativeimpl.Utc;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.secretsmanager.model.APIErrorType;
+import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.Filter;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.ReplicationStatusType;
 import software.amazon.awssdk.services.secretsmanager.model.RotationRulesType;
+import software.amazon.awssdk.services.secretsmanager.model.SecretValueEntry;
 import software.amazon.awssdk.services.secretsmanager.model.Tag;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +63,9 @@ public final class CommonUtils {
     private static final RecordType TAG_REC_TYPE = TypeCreator.createRecordType(
             Constants.SECRET_MNG_TAG_RECORD, ModuleUtils.getModule(), SymbolFlags.PUBLIC, true, 0);
     private static final ArrayType TAG_ARR_TYPE = TypeCreator.createArrayType(TAG_REC_TYPE);
+    private static final RecordType API_ERR_REC_TYPE = TypeCreator.createRecordType(
+            Constants.SECRET_MNG_API_ERR_RECORD, ModuleUtils.getModule(), SymbolFlags.PUBLIC, true, 0);
+    private static final ArrayType API_ERR_ARR_TYPE = TypeCreator.createArrayType(API_ERR_REC_TYPE);
 
     private CommonUtils() {
     }
@@ -292,5 +301,84 @@ public final class CommonUtils {
         secretValue.put(
                 Constants.SECRET_MNG_SECRET_VALUE_VERSION_STAGES, ValueCreator.createArrayValue(versionToStages));
         return secretValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static BatchGetSecretValueRequest toNativeBatchGetSecretValueRequest(BMap<BString, Object> request) {
+        BatchGetSecretValueRequest.Builder builder = BatchGetSecretValueRequest.builder();
+
+        if (request.containsKey(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_FILTERS)) {
+            BArray filters = request.getArrayValue(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_FILTERS);
+            List<Filter> nativeFilters = new ArrayList<>();
+            for (int i = 0; i < filters.size(); i++) {
+                BMap<BString, Object> filter = (BMap<BString, Object>) filters.get(i);
+                Filter nativeFilter = toNativeFilter(filter);
+                nativeFilters.add(nativeFilter);
+            }
+            builder.filters(nativeFilters);
+        } else {
+            String[] secretIds = request.getArrayValue(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_SECRET_IDS)
+                    .getStringArray();
+            builder.secretIdList(secretIds);
+        }
+
+        if (request.containsKey(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_MAX_RESULTS)) {
+            builder.maxResults(request.getIntValue(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_MAX_RESULTS).intValue());
+        }
+
+        if (request.containsKey(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_NXT_TOKEN)) {
+            builder.nextToken(request.getStringValue(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_NXT_TOKEN).getValue());
+        }
+
+        return builder.build();
+    }
+
+    private static Filter toNativeFilter(BMap<BString, Object> filter) {
+        Filter.Builder builder = Filter.builder();
+        if (filter.containsKey(Constants.SECRET_MNG_SECRET_VALUE_FILTER_KEY)) {
+            builder.key(filter.getStringValue(Constants.SECRET_MNG_SECRET_VALUE_FILTER_KEY).getValue());
+        }
+        if (filter.containsKey(Constants.SECRET_MNG_SECRET_VALUE_FILTER_VALUES)) {
+            BArray filterValues = filter.getArrayValue(Constants.SECRET_MNG_SECRET_VALUE_FILTER_VALUES);
+            builder.values(filterValues.getStringArray());
+        }
+        return builder.build();
+    }
+
+    // todo: implement this method properly
+    public static BMap<BString, Object> getBatchGetSecretValueResponse(BatchGetSecretValueResponse nativeResponse) {
+        BMap<BString, Object> batchGetSecretValueResponse = ValueCreator.createRecordValue(
+                ModuleUtils.getModule(), Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_RECORD);
+
+        List<APIErrorType> nativeErrors = nativeResponse.errors();
+        if (Objects.nonNull(nativeErrors) && !nativeErrors.isEmpty()) {
+            BArray error = ValueCreator.createArrayValue(API_ERR_ARR_TYPE);
+            nativeErrors.forEach(err -> {
+                BMap<BString, Object> apiError = getApiError(err);
+                error.append(apiError);
+            });
+            batchGetSecretValueResponse.put(Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_ERRORS, error);
+        }
+
+        if (Objects.nonNull(nativeResponse.nextToken())) {
+            batchGetSecretValueResponse.put(
+                    Constants.SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_NXT_TOKEN, nativeResponse.nextToken());
+        }
+
+        return batchGetSecretValueResponse;
+    }
+
+    public static BMap<BString, Object> getApiError(APIErrorType nativeError) {
+        BMap<BString, Object> apiError = ValueCreator.createRecordValue(API_ERR_REC_TYPE);
+        if (Objects.nonNull(nativeError.errorCode())) {
+            apiError.put(Constants.SECRET_MNG_API_ERR_ERR_CODE, StringUtils.fromString(nativeError.errorCode()));
+        }
+        if (Objects.nonNull(nativeError.message())) {
+            apiError.put(Constants.SECRET_MNG_API_ERR_MSG, StringUtils.fromString(nativeError.message()));
+        }
+        if (Objects.nonNull(nativeError.secretId())) {
+            apiError.put(Constants.SECRET_MNG_API_ERR_SECRET_ID, StringUtils.fromString(nativeError.secretId()));
+        }
+        return apiError;
     }
 }

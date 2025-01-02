@@ -173,7 +173,7 @@ public enum StagingStatus {
     AWSPREVIOUS
 }
 
-# # Represents the request to retrieve a secret value from AWS Secrets Manager.
+# Represents the request to retrieve a secret value from AWS Secrets Manager.
 public type GetSecretValueRequest record {|
     # The ARN or name of the secret
     SecretId secretId;
@@ -205,4 +205,78 @@ public type SecretValue record {|
     string versionId;
     # A list of all of the staging labels currently attached to this version of the secret
     string[] versionStages;
+|};
+
+# Represents the request parameters for the `batchGetSecretValue` API of the AWS Secrets Manager connector.
+public type BatchGetSecretValueRequest record {|
+    # The filters to choose which secrets to retrieve
+    @constraint:Array {
+        maxLength: 10
+    }
+    SecretValueFilter[] filters?;
+    # The number of results to include in the response. If there are more results available, 
+    # in the response, Secrets Manager includes `nextToken`. To use this parameter, 
+    # you must also use the `filters` parameter
+    @constraint:Int {
+        minValue: 1,
+        maxValue: 20
+    }
+    int maxResults?;
+    # A token that indicates where the output should continue from, 
+    # if a previous call did not show all results
+    @constraint:String {
+        minLength: 1,
+        maxLength: 4096
+    }
+    string nextToken?;
+    # The ARN or names of the secrets to retrieve. You must include `filters` or `secretIds`, but not both
+    @constraint:Array {
+        minLength: 1,
+        maxLength: 20
+    }
+    SecretId[] secretIds?;
+|};
+
+# Represents a filter used to match specific secrets based on a key and its values.
+public type SecretValueFilter record {|
+    # The key used to filter secrets
+    FilterKey 'key?;
+    # A list of values associated with the filter key
+    @constraint:Array {
+        minLength: 1,
+        maxLength: 10
+    }
+    FilterValue[] values?;
+|};
+
+# The allowed filter keys for `SecretValueFilter`.
+public type FilterKey "description"|"name"|"tag-key"|"tag-value"|"primary-region"|"owning-service"|"all";
+
+# Represents a value used in the filter criteria for a `SecretValueFilter`.
+@constraint:String {
+    pattern: re `^!?[a-zA-Z0-9 :_@/+=.\-!]{0,512}$`
+}
+public type FilterValue string;
+
+# Represents the response returned by the `batchGetSecretValue` API of the AWS Secrets Manager connector.
+public type BatchGetSecretValueResponse record {|
+    # A list of errors encountered by Secrets Manager while attempting to retrieve individual secrets.
+    # Each error provides details such as the error code, message, and the affected secret's identifier.
+    ApiError[] errors?;
+    # A token indicating that more results are available than what is included in the current response. 
+    # Use this token to retrieve the next set of results by making another call to `batchGetSecretValue`. 
+    # This token might be present even if no values are returned, such as when filtering a long list
+    string nextToken?;
+    # A list of retrieved secret values. Each value represents a specific secret returned by the API.
+    SecretValue[] secretValues?;
+|};
+
+# Represents an error encountered by Secrets Manager while retrieving an individual secret.
+public type ApiError record {|
+    # The error code returned by Secrets Manager indicating the issue encountered.
+    string errorCode?;
+    # A descriptive message explaining the nature of the error.
+    string message?;
+    # The ARN or name of the secret for which the error occurred.
+    SecretId secretId?;
 |};

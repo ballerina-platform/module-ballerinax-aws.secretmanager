@@ -30,6 +30,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
@@ -92,7 +94,7 @@ public class NativeClientAdaptor {
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
      * @param secretId  The ARN or name of the secret.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
-     *      Secret Manager `DescribeSecretResponse`.
+     *      Secret Manager `secretmanager:DescribeSecretResponse`.
      */
     public static Object describeSecret(Environment env, BObject bAwsSecretMngClient, BString secretId) {
         SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
@@ -122,7 +124,7 @@ public class NativeClientAdaptor {
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
      * @param request The Ballerina AWS Secret Manager `GetSecretValueRequest` request.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
-     *      Secret Manager `SecretValue`.
+     *      Secret Manager `secretmanager:SecretValue`.
      */
     public static Object getSecretValue(Environment env, BObject bAwsSecretMngClient, BMap<BString, Object> request) {
         SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
@@ -136,6 +138,38 @@ public class NativeClientAdaptor {
                 future.complete(bSecretValue);
             } catch (Exception e) {
                 String errorMsg = String.format("Error occurred while executing get-secret-value request: %s",
+                        e.getMessage());
+                BError bError = CommonUtils.createError(errorMsg, e);
+                future.complete(bError);
+            }
+        });
+        return null;
+    }
+
+    /**
+     * Retrieves the contents of the encrypted fields for up to 20 secrets.
+     *
+     * @param env The Ballerina runtime environment.
+     * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
+     * @param request The Ballerina AWS Secret Manager `BatchGetSecretValueRequest` request.
+     * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
+     *      Secret Manager `secretmanager:BatchGetSecretValueResponse`.
+     */
+    public static Object batchGetSecretValue(Environment env, BObject bAwsSecretMngClient,
+                                             BMap<BString, Object> request) {
+        SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
+                .getNativeData(Constants.NATIVE_CLIENT);
+        BatchGetSecretValueRequest batchGetSecretValueRequest = CommonUtils.toNativeBatchGetSecretValueRequest(request);
+        Future future = env.markAsync();
+        EXECUTOR_SERVICE.execute(() -> {
+            try {
+                BatchGetSecretValueResponse getSecretValueResponse = nativeClient
+                        .batchGetSecretValue(batchGetSecretValueRequest);
+                BMap<BString, Object> bBatchGetSecretValueRequest = CommonUtils
+                        .getBatchGetSecretValueResponse(getSecretValueResponse);
+                future.complete(bBatchGetSecretValueRequest);
+            } catch (Exception e) {
+                String errorMsg = String.format("Error occurred while executing batch-get-secret-value request: %s",
                         e.getMessage());
                 BError bError = CommonUtils.createError(errorMsg, e);
                 future.complete(bError);

@@ -89,4 +89,26 @@ public interface Constants {
     BString SECRET_MNG_SECRET_VALUE_VALUE = StringUtils.fromString("value");
     BString SECRET_MNG_SECRET_VALUE_VERSION_ID = StringUtils.fromString("versionId");
     BString SECRET_MNG_SECRET_VALUE_VERSION_STAGES = StringUtils.fromString("versionStages");
+
+    // Constants related to Secret Manager `BatchGetSecretValueRequest`
+    BString SECRET_MNG_BATCH_GET_SECRET_VALUE_FILTERS = StringUtils.fromString("filters");
+    BString SECRET_MNG_BATCH_GET_SECRET_VALUE_MAX_RESULTS = StringUtils.fromString("maxResults");
+    BString SECRET_MNG_BATCH_GET_SECRET_VALUE_NXT_TOKEN = StringUtils.fromString("nextToken");
+    BString SECRET_MNG_BATCH_GET_SECRET_VALUE_SECRET_IDS = StringUtils.fromString("secretIds");
+
+    // Constants related to Secret Manager `SecretValueFilter`
+    BString SECRET_MNG_SECRET_VALUE_FILTER_KEY = StringUtils.fromString("key");
+    BString SECRET_MNG_SECRET_VALUE_FILTER_VALUES = StringUtils.fromString("values");
+
+    // Constants related to Secret Manager `BatchGetSecretValueResponse`
+    String SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_RECORD = "BatchGetSecretValueResponse";
+    BString SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_ERRORS = StringUtils.fromString("errors");
+    BString SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_NXT_TOKEN = StringUtils.fromString("nextToken");
+    BString SECRET_MNG_BATCH_GET_SECRET_VALUE_RES_SECRET_VALUES = StringUtils.fromString("secretValues");
+
+    // Constants related to Secret Manager `ApiError`
+    String SECRET_MNG_API_ERR_RECORD = "ApiError";
+    BString SECRET_MNG_API_ERR_ERR_CODE = StringUtils.fromString("errorCode");
+    BString SECRET_MNG_API_ERR_MSG = StringUtils.fromString("message");
+    BString SECRET_MNG_API_ERR_SECRET_ID = StringUtils.fromString("secretId");
 }
