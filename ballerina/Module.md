@@ -9,11 +9,6 @@ Before using this connector in your Ballerina application, complete the followin
 1. Create an [AWS account](https://portal.aws.amazon.com/billing/signup?nc2=h_ct&src=default&redirect_url=https%3A%2F%2Faws.amazon.com%2Fregistration-confirmation#/start)
 2. [Obtain tokens](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html)
 
-## Setup guide
-Before using this connector in your Ballerina application, complete the following:
-1. Create an [AWS account](https://portal.aws.amazon.com/billing/signup?nc2=h_ct&src=default&redirect_url=https%3A%2F%2Faws.amazon.com%2Fregistration-confirmation#/start)
-2. [Obtain tokens](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html)
-
 ## Quickstart
 
 To use the `aws.secretmanager` connector in your Ballerina project, modify the `.bal` file as follows:
