@@ -99,14 +99,11 @@ public isolated client class Client {
         if validated is constraint:Error {
             return error Error(string `Request validation failed: ${validated.message()}`);
         }
-        if request.filters is () {
-            if request.secretIds is () {
-                return error Error("Either `filters` or `secretIds` must be provided in the request");
-            }
-        } else {
-            if request.secretIds is SecretId[] {
-                return error Error("The request cannot contain both `filters` and `secretIds` simultaneously");
-            }
+        if request.filters is () && request.secretIds is () {
+            return error Error("Either `filters` or `secretIds` must be provided in the request");
+        }
+        if request.secretIds is SecretId[] && request.filters is SecretValueFilter[] {
+            return error Error("The request cannot contain both `filters` and `secretIds` simultaneously");
         }
         return self.externBatchGetSecretValue(validated);
     }
