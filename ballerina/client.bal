@@ -17,10 +17,10 @@
 import ballerina/constraint;
 import ballerina/jballerina.java;
 
-# AWS Secret Manger client.
+# AWS Secret Manager client.
 public isolated client class Client {
 
-    # Initialize the Ballerina AWS Secret Manger client.
+    # Initialize the Ballerina AWS Secret Manager client.
     # ```ballerina
     # secretmanager:Client secretmanager = check new(region = secretmanager:US_EAST_1, auth = {
     #   accessKeyId: "<aws-access-key>",
