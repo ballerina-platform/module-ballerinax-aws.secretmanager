@@ -122,14 +122,17 @@ public class NativeClientAdaptor {
      *
      * @param env                 The Ballerina runtime environment.
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
-     * @param request             The Ballerina AWS Secret Manager `GetSecretValueRequest` request.
+     * @param secretId            The ARN or name of the secret.
+     * @param versionSelector             The Ballerina AWS Secret Manager `SecretVersionSelector`.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
      * Secret Manager `secretmanager:SecretValue`.
      */
-    public static Object getSecretValue(Environment env, BObject bAwsSecretMngClient, BMap<BString, Object> request) {
+    public static Object getSecretValue(Environment env, BObject bAwsSecretMngClient, BString secretId,
+                                        BMap<BString, Object> versionSelector) {
         SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
                 .getNativeData(Constants.NATIVE_CLIENT);
-        GetSecretValueRequest getSecretValueRequest = CommonUtils.toNativeGetSecretValueRequest(request);
+        GetSecretValueRequest getSecretValueRequest = CommonUtils.toNativeGetSecretValueRequest(
+                secretId, versionSelector);
         Future future = env.markAsync();
         EXECUTOR_SERVICE.execute(() -> {
             try {

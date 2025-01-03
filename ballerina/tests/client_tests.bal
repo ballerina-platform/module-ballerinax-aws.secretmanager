@@ -84,7 +84,7 @@ isolated function testDescribeSecretWithEmptyId() returns error? {
 }
 isolated function testGetSecretWithName() returns error? {
     string secretName = "prod/myapp/beta";
-    SecretValue secret = check secretManager->getSecretValue(secretId = secretName);
+    SecretValue secret = check secretManager->getSecretValue(secretName);
     test:assertEquals(secret.name, secretName);
 }
 
@@ -93,7 +93,7 @@ isolated function testGetSecretWithName() returns error? {
 }
 isolated function testGetSecretWithArn() returns error? {
     string secretArn = "arn:aws:secretsmanager:us-east-1:367134611783:secret:prod/mysql/beta-fzKVYO";
-    SecretValue secret = check secretManager->getSecretValue(secretId = secretArn);
+    SecretValue secret = check secretManager->getSecretValue(secretArn);
     test:assertEquals(secret.arn, secretArn);
 }
 
@@ -101,7 +101,7 @@ isolated function testGetSecretWithArn() returns error? {
     enable: enableTests
 }
 isolated function testGetSecretWithInvalidId() returns error? {
-    SecretValue|Error secret = secretManager->getSecretValue(secretId = "prod/invalidapp/beta");
+    SecretValue|Error secret = secretManager->getSecretValue("prod/invalidapp/beta");
     test:assertTrue(secret is Error);
     if secret is Error {
         ErrorDetails errDetails = secret.detail();
@@ -115,7 +115,7 @@ isolated function testGetSecretWithInvalidId() returns error? {
     enable: enableTests
 }
 isolated function testGetSecretWithEmptyId() returns error? {
-    SecretValue|Error secret = secretManager->getSecretValue(secretId = "");
+    SecretValue|Error secret = secretManager->getSecretValue("");
     test:assertTrue(secret is Error);
     if secret is Error {
         test:assertTrue(

@@ -180,9 +180,7 @@ public enum StagingStatus {
 }
 
 # Represents the request to retrieve a secret value from AWS Secrets Manager.
-public type GetSecretValueRequest record {|
-    # The ARN or name of the secret
-    SecretId secretId;
+public type SecretVersionSelector record {|
     # The unique identifier of the version of the secret
     @constraint:String {
         minLength: {

@@ -268,14 +268,17 @@ public final class CommonUtils {
         return bTag;
     }
 
-    public static GetSecretValueRequest toNativeGetSecretValueRequest(BMap<BString, Object> request) {
+    public static GetSecretValueRequest toNativeGetSecretValueRequest(BString secretId,
+                                                                      BMap<BString, Object> versionSelector) {
         GetSecretValueRequest.Builder builder = GetSecretValueRequest.builder();
-        builder.secretId(request.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_SECRET_ID).getValue());
-        if (request.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID)) {
-            builder.versionId(request.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID).getValue());
+        builder.secretId(secretId.getValue());
+        if (versionSelector.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID)) {
+            builder.versionId(
+                    versionSelector.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID).getValue());
         }
-        if (request.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE)) {
-            builder.versionId(request.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE).getValue());
+        if (versionSelector.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE)) {
+            builder.versionId(
+                    versionSelector.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE).getValue());
         }
         return builder.build();
     }

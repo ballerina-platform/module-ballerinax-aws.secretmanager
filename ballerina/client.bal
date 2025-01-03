@@ -65,21 +65,26 @@ public isolated client class Client {
 
     # Retrieves the contents of the encrypted fields from the specified version of a secret.
     # ```ballerina
-    # secretmanager:SecretValue secret = check secretmanager->getSecretValue(secretId = "<aws-secret-id>");
+    # secretmanager:SecretValue secret = check secretmanager->getSecretValue("<aws-secret-id>");
     # ```
     #
-    # + request - The request object containing the details to identify the secret
+    # + secretId - The ARN or name of the secret
+    # + versionSelector - Details for selecting a specific version of the secret
     # + return - An `secretmanager:SecretValue` containing the content of the secret, or an 
     # `secretmanager:Error` if the request validation or the operation failed
-    isolated remote function getSecretValue(*GetSecretValueRequest request) returns SecretValue|Error {
-        GetSecretValueRequest|constraint:Error validated = constraint:validate(request);
-        if validated is constraint:Error {
-            return error Error(string `Request validation failed: ${validated.message()}`);
+    isolated remote function getSecretValue(SecretId secretId, *SecretVersionSelector versionSelector) returns SecretValue|Error {
+        SecretId|constraint:Error validatedSecretId = constraint:validate(secretId);
+        if validatedSecretId is constraint:Error {
+            return error Error(string `Request validation failed: ${validatedSecretId.message()}`);
         }
-        return self.externGetSecretValue(validated);
+        SecretVersionSelector|constraint:Error validatedVersionSelector = constraint:validate(versionSelector);
+        if validatedVersionSelector is constraint:Error {
+            return error Error(string `Request validation failed: ${validatedVersionSelector.message()}`);
+        }
+        return self.externGetSecretValue(validatedSecretId, validatedVersionSelector);
     }
 
-    isolated function externGetSecretValue(*GetSecretValueRequest request) returns SecretValue|Error =
+    isolated function externGetSecretValue(SecretId secretId, SecretVersionSelector versionSelector) returns SecretValue|Error =
     @java:Method {
         name: "getSecretValue",
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
@@ -108,7 +113,7 @@ public isolated client class Client {
         return self.externBatchGetSecretValue(validated);
     }
 
-    isolated function externBatchGetSecretValue(*BatchGetSecretValueRequest request) returns BatchGetSecretValueResponse|Error =
+    isolated function externBatchGetSecretValue(BatchGetSecretValueRequest request) returns BatchGetSecretValueResponse|Error =
     @java:Method {
         name: "batchGetSecretValue",
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
