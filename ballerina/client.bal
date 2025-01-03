@@ -49,7 +49,7 @@ public isolated client class Client {
     # + secretId - The ARN or name of the secret
     # + return - An `secretmanager:DescribeSecretResponse` containing the details of the secret, 
     # or an `secretmanager:Error` if the request validation or the operation failed
-    remote function describeSecret(SecretId secretId) returns DescribeSecretResponse|Error {
+    isolated remote function describeSecret(SecretId secretId) returns DescribeSecretResponse|Error {
         SecretId|constraint:Error validated = constraint:validate(secretId);
         if validated is constraint:Error {
             return error Error(string `Request validation failed: ${validated.message()}`);
@@ -71,7 +71,7 @@ public isolated client class Client {
     # + request - The request object containing the details to identify the secret
     # + return - An `secretmanager:SecretValue` containing the content of the secret, or an 
     # `secretmanager:Error` if the request validation or the operation failed
-    remote function getSecretValue(*GetSecretValueRequest request) returns SecretValue|Error {
+    isolated remote function getSecretValue(*GetSecretValueRequest request) returns SecretValue|Error {
         GetSecretValueRequest|constraint:Error validated = constraint:validate(request);
         if validated is constraint:Error {
             return error Error(string `Request validation failed: ${validated.message()}`);
@@ -94,7 +94,7 @@ public isolated client class Client {
     # + request - The filters or secret IDs used to identify the secrets to retrieve
     # + return - An `secretmanager:BatchGetSecretValueResponse` containing the contents of the secrets, or an 
     # `secretmanager:Error` if the request validation or the operation failed
-    remote function batchGetSecretValue(*BatchGetSecretValueRequest request) returns BatchGetSecretValueResponse|Error {
+    isolated remote function batchGetSecretValue(*BatchGetSecretValueRequest request) returns BatchGetSecretValueResponse|Error {
         BatchGetSecretValueRequest|constraint:Error validated = constraint:validate(request);
         if validated is constraint:Error {
             return error Error(string `Request validation failed: ${validated.message()}`);
@@ -123,7 +123,7 @@ public isolated client class Client {
     # ```
     #
     # + return - A `secretmanager:Error` if there is an error while closing the client resources or else nil
-    remote function close() returns Error? =
+    isolated remote function close() returns Error? =
     @java:Method {
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
     } external;
