@@ -84,8 +84,14 @@ public type AuthConfig record {|
 
 # The ARN or name of the secret.
 @constraint:String {
-    minLength: 1,
-    maxLength: 2048
+    minLength: {
+        value: 1,
+        message: "SecretId must contain at least 1 character"
+    },
+    maxLength: {
+        value: 2048,
+        message: "SecretId cannot exceed 2048 characters"
+    }
 }
 public type SecretId string;
 
@@ -179,14 +185,26 @@ public type GetSecretValueRequest record {|
     SecretId secretId;
     # The unique identifier of the version of the secret
     @constraint:String {
-        minLength: 32,
-        maxLength: 64
+        minLength: {
+            value: 32,
+            message: "VersionId must be at least 32 characters long"
+        },
+        maxLength: {
+            value: 64,
+            message: "VersionId cannot exceed 64 characters"
+        }
     }
     string versionId?;
     # The staging label of the version of the secret
     @constraint:String {
-        minLength: 1,
-        maxLength: 256
+        minLength: {
+            value: 1,
+            message: "VersionStage must contain at least 1 character"
+        },
+        maxLength: {
+            value: 256,
+            message: "VersionStage cannot exceed 256 characters"
+        }
     }
     string versionStage?;
 |};
@@ -211,28 +229,49 @@ public type SecretValue record {|
 public type BatchGetSecretValueRequest record {|
     # The filters to choose which secrets to retrieve
     @constraint:Array {
-        maxLength: 10
+        maxLength: {
+            value: 10,
+            message: "Can only have maximum 10 filters per request"
+        }
     }
     SecretValueFilter[] filters?;
     # The number of results to include in the response. If there are more results available, 
     # in the response, Secrets Manager includes `nextToken`. To use this parameter, 
     # you must also use the `filters` parameter
     @constraint:Int {
-        minValue: 1,
-        maxValue: 20
+        minValue: {
+            value: 1,
+            message: "MaxResults must be at least 1"
+        },
+        maxValue: {
+            value: 20,
+            message: "MaxResults cannot exceed 20"
+        }
     }
     int maxResults?;
     # A token that indicates where the output should continue from, 
     # if a previous call did not show all results
     @constraint:String {
-        minLength: 1,
-        maxLength: 4096
+        minLength: {
+            value: 1,
+            message: "NextToken must contain at least 1 character"
+        },
+        maxLength: {
+            value: 4096,
+            message: "NextToken cannot exceed 4096 characters"
+        }
     }
     string nextToken?;
     # The ARN or names of the secrets to retrieve. You must include `filters` or `secretIds`, but not both
     @constraint:Array {
-        minLength: 1,
-        maxLength: 20
+        minLength: {
+            value: 1,
+            message: "Should have atleast 1 secretId per request"
+        },
+        maxLength: {
+            value: 20,
+            message: "Can only have maximum 20 secretIds per request"
+        }
     }
     SecretId[] secretIds?;
 |};
@@ -243,8 +282,14 @@ public type SecretValueFilter record {|
     FilterKey 'key?;
     # A list of values associated with the filter key
     @constraint:Array {
-        minLength: 1,
-        maxLength: 10
+        minLength: {
+            value: 1,
+            message: "The `values` must contain at least 1 element"
+        },
+        maxLength: {
+            value: 10,
+            message: "The `values` cannot contain more than 10 elements"
+        }
     }
     FilterValue[] values?;
 |};
@@ -254,7 +299,10 @@ public type FilterKey "description"|"name"|"tag-key"|"tag-value"|"primary-region
 
 # Represents a value used in the filter criteria for a `SecretValueFilter`.
 @constraint:String {
-    pattern: re `^!?[a-zA-Z0-9 :_@/+=.\-!]{0,512}$`
+    pattern: {
+        value: re `^!?[a-zA-Z0-9 :_@/+=.\-!]{0,512}$`,
+        message: "Invalid filter value format"
+    }
 }
 public type FilterValue string;
 
