@@ -29,7 +29,7 @@ public isolated client class Client {
     # ```
     #
     # + configs - The AWS Secret Manager client configurations
-    # + return - The `secretmanager:Client` or an `secretmanager:Error` if the initialization failed
+    # + return - The `secretmanager:Client` or a `secretmanager:Error` if the initialization failed
     public isolated function init(*ConnectionConfig configs) returns Error? {
         return self.externInit(configs);
     }
