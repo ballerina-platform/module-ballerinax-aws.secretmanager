@@ -76,10 +76,9 @@ public interface Constants {
     BString SECRET_MNG_TAG_KEY = StringUtils.fromString("key");
     BString SECRET_MNG_TAG_VALUE = StringUtils.fromString("value");
 
-    // Constants related to Secret Manager `GetSecretValueRequest`
-    BString SECRET_MNG_GET_SECRET_VALUE_SECRET_ID = StringUtils.fromString("secretId");
-    BString SECRET_MNG_GET_SECRET_VALUE_VERSION_ID = StringUtils.fromString("versionId");
-    BString SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE = StringUtils.fromString("versionStage");
+    // Constants related to Secret Manager `SecretVersionSelector`
+    BString SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_ID = StringUtils.fromString("versionId");
+    BString SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_STAGE = StringUtils.fromString("versionStage");
 
     // Constants related to Secret Manager `SecretValue`
     String SECRET_MNG_SECRET_VALUE_RECORD = "SecretValue";

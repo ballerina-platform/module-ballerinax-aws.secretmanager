@@ -272,13 +272,13 @@ public final class CommonUtils {
                                                                       BMap<BString, Object> versionSelector) {
         GetSecretValueRequest.Builder builder = GetSecretValueRequest.builder();
         builder.secretId(secretId.getValue());
-        if (versionSelector.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID)) {
+        if (versionSelector.containsKey(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_ID)) {
             builder.versionId(
-                    versionSelector.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_ID).getValue());
+                    versionSelector.getStringValue(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_ID).getValue());
         }
-        if (versionSelector.containsKey(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE)) {
-            builder.versionId(
-                    versionSelector.getStringValue(Constants.SECRET_MNG_GET_SECRET_VALUE_VERSION_STAGE).getValue());
+        if (versionSelector.containsKey(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_STAGE)) {
+            builder.versionId(versionSelector.getStringValue(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_STAGE)
+                    .getValue());
         }
         return builder.build();
     }
