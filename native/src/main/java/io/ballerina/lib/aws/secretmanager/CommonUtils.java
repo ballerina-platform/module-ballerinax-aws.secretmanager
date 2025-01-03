@@ -102,12 +102,12 @@ public final class CommonUtils {
         describeSecretResp.put(
                 Constants.SECRET_MNG_DESC_SECRET_ARN, StringUtils.fromString(nativeResponse.arn()));
         describeSecretResp.put(
-                Constants.SECRET_MNG_DESC_SECRET_CREATED, new Utc(nativeResponse.createdDate()));
+                Constants.SECRET_MNG_DESC_SECRET_CREATED, new Utc(nativeResponse.createdDate()).build());
 
         Instant deletedDate = nativeResponse.deletedDate();
         if (Objects.nonNull(deletedDate)) {
             describeSecretResp.put(
-                    Constants.SECRET_MNG_DESC_SECRET_DELETED, new Utc(deletedDate));
+                    Constants.SECRET_MNG_DESC_SECRET_DELETED, new Utc(deletedDate).build());
         }
 
         describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_DESCRIPTION,
@@ -121,17 +121,17 @@ public final class CommonUtils {
 
         Instant lastAccessed = nativeResponse.lastAccessedDate();
         if (Objects.nonNull(lastAccessed)) {
-            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_LAST_ACCESSED, new Utc(lastAccessed));
+            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_LAST_ACCESSED, new Utc(lastAccessed).build());
         }
 
         Instant lastChanged = nativeResponse.lastChangedDate();
         if (Objects.nonNull(lastChanged)) {
-            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_LAST_CHANGED, new Utc(lastChanged));
+            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_LAST_CHANGED, new Utc(lastChanged).build());
         }
 
         Instant lastRotated = nativeResponse.lastRotatedDate();
         if (Objects.nonNull(lastRotated)) {
-            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_LAST_ROTATED, new Utc(lastRotated));
+            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_LAST_ROTATED, new Utc(lastRotated).build());
         }
 
         describeSecretResp.put(
@@ -139,7 +139,7 @@ public final class CommonUtils {
 
         Instant nextRotation = nativeResponse.nextRotationDate();
         if (Objects.nonNull(nextRotation)) {
-            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_NXT_ROTATION, new Utc(nextRotation));
+            describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_NXT_ROTATION, new Utc(nextRotation).build());
         }
 
         describeSecretResp.put(
@@ -215,7 +215,7 @@ public final class CommonUtils {
         Instant rsLastAccessed = rs.lastAccessedDate();
         if (Objects.nonNull(rsLastAccessed)) {
             replicationStatusRec.put(
-                    Constants.SECRET_MNG_REPLICATION_STATUS_LAST_ACCESSED, new Utc(rsLastAccessed));
+                    Constants.SECRET_MNG_REPLICATION_STATUS_LAST_ACCESSED, new Utc(rsLastAccessed).build());
         }
         String rsRegion = rs.region();
         if (Objects.nonNull(rsRegion)) {
@@ -288,7 +288,7 @@ public final class CommonUtils {
     private static BMap<BString, Object> getSecretValue(SecretValue nativeSecret) {
         BMap<BString, Object> secretValue = ValueCreator.createRecordValue(SECRET_VALUE_REC_TYPE);
         secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_ARN, StringUtils.fromString(nativeSecret.arn()));
-        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_CREATED, new Utc(nativeSecret.createdDate()));
+        secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_CREATED, new Utc(nativeSecret.createdDate()).build());
         secretValue.put(Constants.SECRET_MNG_SECRET_VALUE_NAME, StringUtils.fromString(nativeSecret.name()));
 
         if (Objects.nonNull(nativeSecret.binaryValue())) {
