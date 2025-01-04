@@ -43,7 +43,11 @@ secretmanager:Client secretmanager = check new(region = secretmanager:US_EAST_1,
 
 ### Step 3: Invoke the connector operation
 
-// todo: complete this
+Now, utilize the available connector operations.
+
+```ballerina
+secretmanager:DescribeSecretResponse response = check secretManager->describeSecret("<secret-id>");
+```
 
 ### Step 4: Run the Ballerina application
 

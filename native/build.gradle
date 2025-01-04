@@ -65,7 +65,7 @@ spotbugsMain {
     effort = "max"
     reportLevel = "low"
     reportsDir = file("$project.buildDir/reports/spotbugs")
-    def excludeFile = file("${rootDir}/build-config/spotbugs-exclude.xml")
+    def excludeFile = file("spotbugs-exclude.xml")
     if (excludeFile.exists()) {
         it.excludeFilter = excludeFile
     }

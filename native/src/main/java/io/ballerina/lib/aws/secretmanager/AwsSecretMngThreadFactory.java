@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,16 +16,19 @@
  * under the License.
  */
 
-module io.ballerina.lib.aws.secretmanager {
-    requires io.ballerina.runtime;
-    requires io.ballerina.lang.value;
-    requires io.ballerina.stdlib.time;
-    requires software.amazon.awssdk.auth;
-    requires software.amazon.awssdk.regions;
-    requires software.amazon.awssdk.services.secretsmanager;
-    requires software.amazon.awssdk.awscore;
-    requires software.amazon.awssdk.core;
-    requires software.amazon.awssdk.http;
+package io.ballerina.lib.aws.secretmanager;
 
-    exports io.ballerina.lib.aws.secretmanager;
+import java.util.concurrent.ThreadFactory;
+
+/**
+ * A {@link ThreadFactory} object that creates new threads on demand for AWS Secret Manager client network actions.
+ */
+public class AwsSecretMngThreadFactory implements ThreadFactory {
+
+    @Override
+    public Thread newThread(Runnable runnable) {
+        Thread networkThread = new Thread(runnable);
+        networkThread.setName("balx-awssecretmng-client-network-thread");
+        return networkThread;
+    }
 }

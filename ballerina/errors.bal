@@ -1,4 +1,4 @@
-// Copyright (c) 2024 WSO2 LLC. (http://www.wso2.com).
+// Copyright (c) 2025 WSO2 LLC. (http://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,12 +14,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/jballerina.java;
+# Represents a AWS Secret Manager distinct error.
+public type Error distinct error<ErrorDetails>;
 
-function init() {
-    setModule();
-}
-
-function setModule() = @java:Method {
-    'class: "io.ballerina.lib.aws.secretmanager.ModuleUtils"
-} external;
+# The error details type for the AWS Secret Manager module.
+public type ErrorDetails record {|
+    # The HTTP status code for the error
+    int httpStatusCode?;
+    # The HTTP status text returned from the service
+    string httpStatusText?;
+    # The error code associated with the response
+    string errorCode?;
+    # The human-readable error message provided by the service
+    string errorMessage?;
+|};
