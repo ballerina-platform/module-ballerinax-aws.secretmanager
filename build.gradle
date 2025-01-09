@@ -25,7 +25,7 @@ plugins {
     id "net.researchgate.release"
 }
 
-description = 'Ballerina - AWS Marketplace Entitlement'
+description = 'Ballerina - AWS Secret Manager'
 
 allprojects {
     group = project.group
