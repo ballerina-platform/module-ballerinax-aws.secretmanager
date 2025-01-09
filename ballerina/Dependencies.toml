@@ -121,7 +121,7 @@ modules = [
 [[package]]
 org = "ballerinax"
 name = "aws.secretmanager"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "jballerina.java"},
