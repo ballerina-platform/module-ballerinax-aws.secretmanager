@@ -78,10 +78,11 @@ public class NativeClientAdaptor {
     }
 
     private static AwsCredentialsProvider getCredentialsProvider(AuthConfig auth) {
-        if (auth instanceof StaticAuthConfig(String accessKeyId, String secretAccessKey, String sessionToken)) {
-            AwsCredentials credentials = Objects.nonNull(sessionToken) ?
-                    AwsSessionCredentials.create(accessKeyId, secretAccessKey, sessionToken) :
-                    AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+        if (auth instanceof StaticAuthConfig staticAuth) {
+            AwsCredentials credentials = Objects.nonNull(staticAuth.sessionToken()) ?
+                    AwsSessionCredentials.create(
+                            staticAuth.accessKeyId(), staticAuth.secretAccessKey(), staticAuth.sessionToken()) :
+                    AwsBasicCredentials.create(staticAuth.accessKeyId(), staticAuth.secretAccessKey());
             return StaticCredentialsProvider.create(credentials);
         }
         return InstanceProfileCredentialsProvider.create();
