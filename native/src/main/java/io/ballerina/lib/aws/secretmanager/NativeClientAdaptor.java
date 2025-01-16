@@ -28,6 +28,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueRequest;
@@ -63,8 +64,7 @@ public class NativeClientAdaptor {
     public static Object init(BObject bAwsSecretMngClient, BMap<BString, Object> configurations) {
         try {
             ConnectionConfig connectionConfig = new ConnectionConfig(configurations);
-            AwsCredentials credentials = getCredentials(connectionConfig);
-            AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
+            AwsCredentialsProvider credentialsProvider = getCredentialsProvider(connectionConfig.auth());
             SecretsManagerClient nativeClient = SecretsManagerClient.builder()
                     .credentialsProvider(credentialsProvider)
                     .region(connectionConfig.region()).build();
@@ -77,13 +77,15 @@ public class NativeClientAdaptor {
         return null;
     }
 
-    private static AwsCredentials getCredentials(ConnectionConfig connectionConfig) {
-        if (Objects.nonNull(connectionConfig.sessionToken())) {
-            return AwsSessionCredentials.create(connectionConfig.accessKeyId(), connectionConfig.secretAccessKey(),
-                    connectionConfig.sessionToken());
-        } else {
-            return AwsBasicCredentials.create(connectionConfig.accessKeyId(), connectionConfig.secretAccessKey());
+    private static AwsCredentialsProvider getCredentialsProvider(AuthConfig auth) {
+        if (auth instanceof StaticAuthConfig staticAuth) {
+            AwsCredentials credentials = Objects.nonNull(staticAuth.sessionToken()) ?
+                    AwsSessionCredentials.create(
+                            staticAuth.accessKeyId(), staticAuth.secretAccessKey(), staticAuth.sessionToken()) :
+                    AwsBasicCredentials.create(staticAuth.accessKeyId(), staticAuth.secretAccessKey());
+            return StaticCredentialsProvider.create(credentials);
         }
+        return InstanceProfileCredentialsProvider.create();
     }
 
     /**
@@ -123,7 +125,7 @@ public class NativeClientAdaptor {
      * @param env                 The Ballerina runtime environment.
      * @param bAwsSecretMngClient The Ballerina AWS Secret Manager client object.
      * @param secretId            The ARN or name of the secret.
-     * @param versionSelector             The Ballerina AWS Secret Manager `SecretVersionSelector`.
+     * @param versionSelector     The Ballerina AWS Secret Manager `SecretVersionSelector`.
      * @return A Ballerina `secretmanager:Error` if there was an error while processing the request or else the AWS
      * Secret Manager `secretmanager:SecretValue`.
      */

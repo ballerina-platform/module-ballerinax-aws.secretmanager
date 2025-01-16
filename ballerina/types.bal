@@ -17,12 +17,12 @@
 import ballerina/constraint;
 import ballerina/time;
 
-# Represents the Client configurations for AWS Marketplace Entitlement service.
+# Represents the Client configurations for AWS Secret Manager service.
 public type ConnectionConfig record {|
     # The AWS region with which the connector should communicate
     Region region;
-    # The authentication configurations for the AWS Marketplace Entitlement service
-    AuthConfig auth;
+    # The authentication configurations for the AWS Secret Manager service
+    StaticAuthConfig|EC2_IAM_ROLE auth;
 |};
 
 # An Amazon Web Services region that hosts a set of Amazon services.
@@ -71,8 +71,11 @@ public enum Region {
     US_WEST_2 = "us-west-2"
 }
 
-# Represents the Authentication configurations for AWS Marketplace Entitlement service.
-public type AuthConfig record {|
+# Represents the EC2 IAM role based authentication for AWS Secret Manager service.
+public const EC2_IAM_ROLE = "EC2_IAM_ROLE";
+
+# Represents the static authentication configurations for AWS Secret Manager service.
+public type StaticAuthConfig record {|
     # The AWS access key, used to identify the user interacting with AWS
     string accessKeyId;
     # The AWS secret access key, used to authenticate the user interacting with AWS
