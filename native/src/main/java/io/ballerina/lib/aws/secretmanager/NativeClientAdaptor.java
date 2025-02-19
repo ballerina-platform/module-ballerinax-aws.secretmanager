@@ -19,8 +19,6 @@
 package io.ballerina.lib.aws.secretmanager;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.Future;
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -103,20 +101,16 @@ public class NativeClientAdaptor {
                 .getNativeData(Constants.NATIVE_CLIENT);
         DescribeSecretRequest describeSecretRequest = DescribeSecretRequest.builder().secretId(secretId.getValue())
                 .build();
-        Future future = env.markAsync();
-        EXECUTOR_SERVICE.execute(() -> {
+        return env.yieldAndRun(() -> {
             try {
                 DescribeSecretResponse describeSecretResponse = nativeClient.describeSecret(describeSecretRequest);
-                BMap<BString, Object> bResponse = CommonUtils.getDescribeSecretResponse(describeSecretResponse);
-                future.complete(bResponse);
+                return CommonUtils.getDescribeSecretResponse(describeSecretResponse);
             } catch (Exception e) {
                 String errorMsg = String.format("Error occurred while executing describe-secret request: %s",
                         e.getMessage());
-                BError bError = CommonUtils.createError(errorMsg, e);
-                future.complete(bError);
+                return CommonUtils.createError(errorMsg, e);
             }
         });
-        return null;
     }
 
     /**
@@ -135,20 +129,16 @@ public class NativeClientAdaptor {
                 .getNativeData(Constants.NATIVE_CLIENT);
         GetSecretValueRequest getSecretValueRequest = CommonUtils.toNativeGetSecretValueRequest(
                 secretId, versionSelector);
-        Future future = env.markAsync();
-        EXECUTOR_SERVICE.execute(() -> {
+        return env.yieldAndRun(() -> {
             try {
                 GetSecretValueResponse getSecretValueResponse = nativeClient.getSecretValue(getSecretValueRequest);
-                BMap<BString, Object> bResponse = CommonUtils.getSecretValueResponse(getSecretValueResponse);
-                future.complete(bResponse);
+                return CommonUtils.getSecretValueResponse(getSecretValueResponse);
             } catch (Exception e) {
                 String errorMsg = String.format("Error occurred while executing get-secret-value request: %s",
                         e.getMessage());
-                BError bError = CommonUtils.createError(errorMsg, e);
-                future.complete(bError);
+                return CommonUtils.createError(errorMsg, e);
             }
         });
-        return null;
     }
 
     /**
@@ -165,21 +155,17 @@ public class NativeClientAdaptor {
         SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
                 .getNativeData(Constants.NATIVE_CLIENT);
         BatchGetSecretValueRequest batchGetSecretValueRequest = CommonUtils.toNativeBatchGetSecretValueRequest(request);
-        Future future = env.markAsync();
-        EXECUTOR_SERVICE.execute(() -> {
+        return env.yieldAndRun(() -> {
             try {
                 BatchGetSecretValueResponse getSecretValueResponse = nativeClient
                         .batchGetSecretValue(batchGetSecretValueRequest);
-                BMap<BString, Object> bResponse = CommonUtils.getBatchGetSecretValueResponse(getSecretValueResponse);
-                future.complete(bResponse);
+                return CommonUtils.getBatchGetSecretValueResponse(getSecretValueResponse);
             } catch (Exception e) {
                 String errorMsg = String.format("Error occurred while executing batch-get-secret-value request: %s",
                         e.getMessage());
-                BError bError = CommonUtils.createError(errorMsg, e);
-                future.complete(bError);
+                return CommonUtils.createError(errorMsg, e);
             }
         });
-        return null;
     }
 
     /**
