@@ -9,9 +9,6 @@ keywords = ["AWS", "Secret Manager", "Cloud/Subscriptions"]
 icon = "icon.png"
 repository = "https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager"
 
-# [platform.java17]
-# graalvmCompatible = true
-
 [[platform.java17.dependency]]
 groupId = "io.ballerina.lib"
 artifactId = "aws.secretmanager-native"
