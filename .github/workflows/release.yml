@@ -14,4 +14,3 @@ jobs:
     with:
       package-name: aws.secretmanager
       package-org: ballerinax
-      additional-release-flags: "-x test"
