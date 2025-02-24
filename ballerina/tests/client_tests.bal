@@ -17,13 +17,13 @@
 import ballerina/test;
 import ballerina/os;
 
-final boolean enableTests = os:getEnv("ENABLE_TESTS") is "true";
-final string accessKeyId = os:getEnv("AWS_ACCESS_KEY_ID");
-final string secretAccessKey = os:getEnv("AWS_SECRET_ACCESS_KEY");
+final string accessKeyId = os:getEnv("BALLERINA_AWS_TEST_ACCESS_KEY_ID");
+final string secretAccessKey = os:getEnv("BALLERINA_AWS_TEST_SECRET_ACCESS_KEY");
 
 final Client secretManager = check initClient();
 
 isolated function initClient()returns Client|error {
+    boolean enableTests = accessKeyId !is "" && secretAccessKey !is "";
     if enableTests {
         return new({
             region: US_EAST_1,
@@ -33,27 +33,21 @@ isolated function initClient()returns Client|error {
     return test:mock(Client);
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testDescribeSecretWithName() returns error? {
     string secretName = "prod/myapp/beta";
     DescribeSecretResponse response = check secretManager->describeSecret(secretName);
     test:assertEquals(response.name, secretName);
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testDescribeSecretWithArn() returns error? {
     string secretArn = "arn:aws:secretsmanager:us-east-1:367134611783:secret:prod/mysql/beta-fzKVYO";
     DescribeSecretResponse response = check secretManager->describeSecret(secretArn);
     test:assertEquals(response.arn, secretArn);
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testDescribeSecretWithInvalidId() returns error? {
     DescribeSecretResponse|Error response = secretManager->describeSecret("prod/invalidapp/beta");
     test:assertTrue(response is Error);
@@ -65,9 +59,7 @@ isolated function testDescribeSecretWithInvalidId() returns error? {
     }
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testDescribeSecretWithEmptyId() returns error? {
     DescribeSecretResponse|Error response = secretManager->describeSecret("");
     test:assertTrue(response is Error);
@@ -79,27 +71,21 @@ isolated function testDescribeSecretWithEmptyId() returns error? {
     }
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testGetSecretWithName() returns error? {
     string secretName = "prod/myapp/beta";
     SecretValue secret = check secretManager->getSecretValue(secretName);
     test:assertEquals(secret.name, secretName);
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testGetSecretWithArn() returns error? {
     string secretArn = "arn:aws:secretsmanager:us-east-1:367134611783:secret:prod/mysql/beta-fzKVYO";
     SecretValue secret = check secretManager->getSecretValue(secretArn);
     test:assertEquals(secret.arn, secretArn);
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testGetSecretWithInvalidId() returns error? {
     SecretValue|Error secret = secretManager->getSecretValue("prod/invalidapp/beta");
     test:assertTrue(secret is Error);
@@ -111,9 +97,7 @@ isolated function testGetSecretWithInvalidId() returns error? {
     }
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testGetSecretWithEmptyId() returns error? {
     SecretValue|Error secret = secretManager->getSecretValue("");
     test:assertTrue(secret is Error);
@@ -125,9 +109,7 @@ isolated function testGetSecretWithEmptyId() returns error? {
     }
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testBatchGetSecretWithIds() returns error? {
     BatchGetSecretValueResponse response = check secretManager->batchGetSecretValue(
         secretIds = ["prod/myapp/beta", "prod/mysql/beta"]);
@@ -139,9 +121,7 @@ isolated function testBatchGetSecretWithIds() returns error? {
     }
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testBatchGetSecretWithFilters() returns error? {
     BatchGetSecretValueResponse response = check secretManager->batchGetSecretValue(
         filters = [{'key: "tag-key", values: ["t1", "t2"]}]);
@@ -153,9 +133,7 @@ isolated function testBatchGetSecretWithFilters() returns error? {
     }
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testBatchGetSecretWithoutFiltersAndSecrets() returns error? {
     BatchGetSecretValueResponse|Error response = secretManager->batchGetSecretValue();
     test:assertTrue(response is Error);
@@ -165,9 +143,7 @@ isolated function testBatchGetSecretWithoutFiltersAndSecrets() returns error? {
     }
 }
 
-@test:Config {
-    enable: enableTests
-}
+@test:Config
 isolated function testBatchGetSecretWithFiltersAndSecrets() returns error? {
     BatchGetSecretValueResponse|Error response = secretManager->batchGetSecretValue(
         filters = [{'key: "tag-key", values: ["t1", "t2"]}],
