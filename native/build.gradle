@@ -38,13 +38,7 @@ dependencies {
     implementation group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
     implementation group: 'org.ballerinalang', name: 'value', version: "${ballerinaLangVersion}"
     implementation group: 'io.ballerina.stdlib', name: 'time-native', version: "${stdlibTimeVersion}"
-    implementation group: 'software.amazon.awssdk', name: 'secretsmanager', version: "${awsSecretManagerSdkVersion}"
-
-    dist (group: 'software.amazon.awssdk', name: 'secretsmanager', version: "${awsSecretManagerSdkVersion}") {
-        exclude group: "commons-logging", module: "commons-logging"
-        exclude group: "io.netty", module: "netty-buffer"
-        exclude group: "org.slf4j", module: "slf4j-api"
-    }
+    implementation group: 'software.amazon.awssdk', name: 'secretsmanager', version: "${awsJavaSdkVersion}"
 }
 
 tasks.withType(JavaCompile) {
