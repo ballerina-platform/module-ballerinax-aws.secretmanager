@@ -5,7 +5,7 @@ name = "aws.secretmanager"
 version = "@toml.version@"
 license= ["Apache-2.0"]
 authors = ["Ballerina"]
-keywords = ["AWS", "Secret Manager", "Cloud/Subscriptions"]
+keywords = ["AWS", "Secret Manager", "Cloud/Subscriptions", "Vendor/Amazon", "Area/Security & Identity", "Type/Connector"]
 icon = "icon.png"
 repository = "https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager"
 
