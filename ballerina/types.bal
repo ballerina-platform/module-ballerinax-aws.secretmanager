@@ -22,7 +22,7 @@ public type ConnectionConfig record {|
     # The AWS region with which the connector should communicate
     Region region;
     # The authentication configurations for the AWS Secret Manager service
-    StaticAuthConfig|EC2_IAM_ROLE auth;
+    StaticAuthConfig|EC2_IAM_ROLE|DEFAULT_CREDENTIALS auth;
 |};
 
 # An Amazon Web Services region that hosts a set of Amazon services.
@@ -71,7 +71,13 @@ public enum Region {
     US_WEST_2 = "us-west-2"
 }
 
-# Represents the EC2 IAM role based authentication for AWS Secret Manager service.
+# Represents the default AWS credential chain based authentication.
+# Automatically resolves credentials from environment variables, ECS container credentials,
+# EC2 instance profiles, and other standard AWS credential sources.
+public const DEFAULT_CREDENTIALS = "DEFAULT_CREDENTIALS";
+
+# Represents the EC2 instance profile based authentication.
+# Resolves credentials from the IAM role attached to the EC2 instance.
 public const EC2_IAM_ROLE = "EC2_IAM_ROLE";
 
 # Represents the static authentication configurations for AWS Secret Manager service.
