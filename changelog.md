@@ -9,4 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - [Support IAM role based login to AWS connectors](https://github.com/ballerina-platform/ballerina-library/issues/7496)
+
+## [0.4.0]
+
+### Added
 - [Support default credential login for the AWS Secret Manager connector](https://github.com/wso2-enterprise/wso2-integration-internal/issues/4611)
