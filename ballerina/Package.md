@@ -1,8 +1,15 @@
 ## Overview
 
-[AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html) is a service that helps you protect sensitive information, such as database credentials, API keys, and other secrets, by securely storing and managing access to them.
+[AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html) helps you protect sensitive information, such as database credentials, API keys, and other secrets, by securely storing and managing access to them.
 
-The `ballerinax/aws.secretmanager` package provides APIs to interact with AWS Secrets Manager, enabling developers to programmatically manage secrets, including creating, retrieving, updating, and deleting secrets in their applications.
+The AWS Secrets Manager connector provides APIs to interact with AWS Secrets Manager, enabling developers to programmatically manage secrets, including creating, retrieving, updating, and deleting secrets in their applications.
+
+### Key Features
+
+- Securely store and manage sensitive information
+- Programmatically create, retrieve, update, and delete secrets
+- Integration with AWS Identity and Access Management (IAM)
+- Support for secret rotation and lifecycle management
 
 ## Setup guide
 Before using this connector in your Ballerina application, complete the following:
