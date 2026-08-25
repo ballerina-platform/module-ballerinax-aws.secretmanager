@@ -27,14 +27,10 @@ import io.ballerina.runtime.api.values.BString;
 public interface Constants {
     // Constants related to native data
     String NATIVE_CLIENT = "nativeClient";
+    String NATIVE_CLIENT_CLOSED = "nativeClientClosed";
 
     // Constants related to AWS Secret Manager Error
     String SECRET_MNG_ERROR = "Error";
-    String SECRET_MNG_ERROR_DETAILS = "ErrorDetails";
-    BString SECRET_MNG_ERROR_DETAILS_HTTP_STATUS_CODE = StringUtils.fromString("httpStatusCode");
-    BString SECRET_MNG_ERROR_DETAILS_HTTP_STATUS_TXT = StringUtils.fromString("httpStatusText");
-    BString SECRET_MNG_ERROR_DETAILS_ERR_CODE = StringUtils.fromString("errorCode");
-    BString SECRET_MNG_ERROR_DETAILS_ERR_MSG = StringUtils.fromString("errorMessage");
 
     // Constants related to Secret Manager `DescribeSecretResponse`
     String SECRET_MNG_DESC_SECRET_RECORD = "DescribeSecretResponse";

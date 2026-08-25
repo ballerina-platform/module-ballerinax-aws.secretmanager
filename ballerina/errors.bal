@@ -14,17 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents a AWS Secret Manager distinct error.
-public type Error distinct error<ErrorDetails>;
+import ballerinax/aws;
 
-# The error details type for the AWS Secret Manager module.
-public type ErrorDetails record {|
-    # The HTTP status code for the error
-    int httpStatusCode?;
-    # The HTTP status text returned from the service
-    string httpStatusText?;
-    # The error code associated with the response
-    string errorCode?;
-    # The human-readable error message provided by the service
-    string errorMessage?;
-|};
+# Represents an AWS Secret Manager distinct error.
+public type Error distinct error<aws:ErrorDetails>;

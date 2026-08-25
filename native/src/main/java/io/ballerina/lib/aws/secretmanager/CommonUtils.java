@@ -18,6 +18,7 @@
 
 package io.ballerina.lib.aws.secretmanager;
 
+import io.ballerina.lib.aws.ErrorUtils;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
@@ -30,9 +31,6 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.time.nativeimpl.Utc;
-import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.secretsmanager.model.APIErrorType;
 import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueResponse;
@@ -68,29 +66,17 @@ public final class CommonUtils {
     private static final ArrayType API_ERR_ARR_TYPE = TypeCreator.createArrayType(API_ERR_REC_TYPE);
     private static final RecordType SECRET_VALUE_REC_TYPE = TypeCreator.createRecordType(
             Constants.SECRET_MNG_SECRET_VALUE_RECORD, ModuleUtils.getModule(), SymbolFlags.PUBLIC, true, 0);
-    private static final ArrayType SECRET_VALUE_ARR_TYPE = TypeCreator.createArrayType(API_ERR_REC_TYPE);
+    private static final ArrayType SECRET_VALUE_ARR_TYPE = TypeCreator.createArrayType(SECRET_VALUE_REC_TYPE);
 
     private CommonUtils() {
     }
 
+    /**
+     * Creates a {@code secretmanager:Error} built from the given exception.
+     */
     public static BError createError(String message, Throwable exception) {
         BError cause = ErrorCreator.createError(exception);
-        BMap<BString, Object> errorDetails = ValueCreator.createRecordValue(
-                ModuleUtils.getModule(), Constants.SECRET_MNG_ERROR_DETAILS);
-        if (exception instanceof AwsServiceException awsSvcExp && Objects.nonNull(awsSvcExp.awsErrorDetails())) {
-            AwsErrorDetails awsErrorDetails = awsSvcExp.awsErrorDetails();
-            SdkHttpResponse sdkResponse = awsErrorDetails.sdkHttpResponse();
-            if (Objects.nonNull(sdkResponse)) {
-                errorDetails.put(
-                        Constants.SECRET_MNG_ERROR_DETAILS_HTTP_STATUS_CODE, sdkResponse.statusCode());
-                sdkResponse.statusText().ifPresent(httpStatusTxt -> errorDetails.put(
-                        Constants.SECRET_MNG_ERROR_DETAILS_HTTP_STATUS_TXT, StringUtils.fromString(httpStatusTxt)));
-            }
-            errorDetails.put(
-                    Constants.SECRET_MNG_ERROR_DETAILS_ERR_CODE, StringUtils.fromString(awsErrorDetails.errorCode()));
-            errorDetails.put(
-                    Constants.SECRET_MNG_ERROR_DETAILS_ERR_MSG, StringUtils.fromString(awsErrorDetails.errorMessage()));
-        }
+        BMap<BString, Object> errorDetails = ErrorUtils.createErrorDetails(exception);
         return ErrorCreator.createError(
                 ModuleUtils.getModule(), Constants.SECRET_MNG_ERROR, StringUtils.fromString(message), cause,
                 errorDetails);
@@ -110,8 +96,12 @@ public final class CommonUtils {
                     Constants.SECRET_MNG_DESC_SECRET_DELETED, new Utc(deletedDate).build());
         }
 
-        describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_DESCRIPTION,
-                StringUtils.fromString(nativeResponse.description()));
+        // AWS omits `Description` when the secret has none.
+        String description = nativeResponse.description();
+        if (Objects.nonNull(description)) {
+            describeSecretResp.put(
+                    Constants.SECRET_MNG_DESC_SECRET_DESCRIPTION, StringUtils.fromString(description));
+        }
 
         String kmsKeyId = nativeResponse.kmsKeyId();
         if (Objects.nonNull(kmsKeyId)) {
@@ -142,10 +132,19 @@ public final class CommonUtils {
             describeSecretResp.put(Constants.SECRET_MNG_DESC_SECRET_NXT_ROTATION, new Utc(nextRotation).build());
         }
 
-        describeSecretResp.put(
-                Constants.SECRET_MNG_DESC_SECRET_OWNING_SVC, StringUtils.fromString(nativeResponse.owningService()));
-        describeSecretResp.put(
-                Constants.SECRET_MNG_DESC_SECRET_PRIMARY_RGN, StringUtils.fromString(nativeResponse.primaryRegion()));
+        // AWS returns `OwningService` only for a secret managed by another AWS service.
+        String owningService = nativeResponse.owningService();
+        if (Objects.nonNull(owningService)) {
+            describeSecretResp.put(
+                    Constants.SECRET_MNG_DESC_SECRET_OWNING_SVC, StringUtils.fromString(owningService));
+        }
+
+        // AWS returns `PrimaryRegion` only for a secret replicated to other regions.
+        String primaryRegion = nativeResponse.primaryRegion();
+        if (Objects.nonNull(primaryRegion)) {
+            describeSecretResp.put(
+                    Constants.SECRET_MNG_DESC_SECRET_PRIMARY_RGN, StringUtils.fromString(primaryRegion));
+        }
 
         if (nativeResponse.hasReplicationStatus() && !nativeResponse.replicationStatus().isEmpty()) {
             List<ReplicationStatusType> nativeReplicationStatus = nativeResponse.replicationStatus();
@@ -277,8 +276,9 @@ public final class CommonUtils {
                     versionSelector.getStringValue(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_ID).getValue());
         }
         if (versionSelector.containsKey(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_STAGE)) {
-            builder.versionId(versionSelector.getStringValue(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_STAGE)
-                    .getValue());
+            builder.versionStage(
+                    versionSelector.getStringValue(Constants.SECRET_MNG_SECRET_VERSION_SELECTOR_VERSION_STAGE)
+                            .getValue());
         }
         return builder.build();
     }

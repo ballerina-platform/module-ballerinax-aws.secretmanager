@@ -18,17 +18,14 @@
 
 package io.ballerina.lib.aws.secretmanager;
 
+import io.ballerina.lib.aws.EndpointConfigUtils;
+import io.ballerina.lib.aws.auth.ProviderFactory;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.BatchGetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
@@ -37,18 +34,23 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueReques
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Representation of {@link software.amazon.awssdk.services.secretsmanager.SecretsManagerClient} with
  * utility methods to invoke as inter-op functions.
  */
-public class NativeClientAdaptor {
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(
-            new AwsSecretMngThreadFactory());
+public final class NativeClientAdaptor {
 
     private NativeClientAdaptor() {
+    }
+
+    private static SecretsManagerClient buildClient(ConnectionConfig connectionConfig) {
+        SecretsManagerClientBuilder builder = SecretsManagerClient.builder()
+                .region(connectionConfig.region())
+                .credentialsProvider(connectionConfig.credentialsProvider());
+        EndpointConfigUtils.applyEndpointConfig(builder, connectionConfig.endpointConfig());
+        return builder.build();
     }
 
     /**
@@ -60,30 +62,30 @@ public class NativeClientAdaptor {
      * configurations.
      */
     public static Object init(BObject bAwsSecretMngClient, BMap<BString, Object> configurations) {
+        bAwsSecretMngClient.addNativeData(Constants.NATIVE_CLIENT_CLOSED, new AtomicBoolean(false));
+        ConnectionConfig connectionConfig = null;
         try {
-            ConnectionConfig connectionConfig = new ConnectionConfig(configurations);
-            AwsCredentialsProvider credentialsProvider = getCredentialsProvider(connectionConfig.auth());
-            SecretsManagerClient nativeClient = SecretsManagerClient.builder()
-                    .credentialsProvider(credentialsProvider)
-                    .region(connectionConfig.region()).build();
+            connectionConfig = new ConnectionConfig(configurations);
+            SecretsManagerClient nativeClient = buildClient(connectionConfig);
             bAwsSecretMngClient.addNativeData(Constants.NATIVE_CLIENT, nativeClient);
         } catch (Exception e) {
-            String errorMsg = String.format("Error occurred while initializing the AWS secret manager client: %s",
-                    e.getMessage());
+            releaseProvider(connectionConfig, e);
+            String errorMsg = "Error occurred while initializing the AWS secret manager client: "
+                    + Objects.requireNonNullElse(e.getMessage(), "Unknown error");
             return CommonUtils.createError(errorMsg, e);
         }
         return null;
     }
 
-    private static AwsCredentialsProvider getCredentialsProvider(AuthConfig auth) {
-        if (auth instanceof StaticAuthConfig staticAuth) {
-            AwsCredentials credentials = Objects.nonNull(staticAuth.sessionToken()) ?
-                    AwsSessionCredentials.create(
-                            staticAuth.accessKeyId(), staticAuth.secretAccessKey(), staticAuth.sessionToken()) :
-                    AwsBasicCredentials.create(staticAuth.accessKeyId(), staticAuth.secretAccessKey());
-            return StaticCredentialsProvider.create(credentials);
+    private static void releaseProvider(ConnectionConfig connectionConfig, Exception failure) {
+        if (connectionConfig == null) {
+            return;
         }
-        return DefaultCredentialsProvider.create();
+        try {
+            ProviderFactory.closeProvider(connectionConfig.credentialsProvider());
+        } catch (Exception closeFailure) {
+            failure.addSuppressed(closeFailure);
+        }
     }
 
     /**
@@ -106,8 +108,8 @@ public class NativeClientAdaptor {
                 DescribeSecretResponse describeSecretResponse = nativeClient.describeSecret(describeSecretRequest);
                 return CommonUtils.getDescribeSecretResponse(describeSecretResponse);
             } catch (Exception e) {
-                String errorMsg = String.format("Error occurred while executing describe-secret request: %s",
-                        e.getMessage());
+                String errorMsg = "Error occurred while executing describe-secret request: "
+                        + Objects.requireNonNullElse(e.getMessage(), "Unknown error");
                 return CommonUtils.createError(errorMsg, e);
             }
         });
@@ -134,8 +136,8 @@ public class NativeClientAdaptor {
                 GetSecretValueResponse getSecretValueResponse = nativeClient.getSecretValue(getSecretValueRequest);
                 return CommonUtils.getSecretValueResponse(getSecretValueResponse);
             } catch (Exception e) {
-                String errorMsg = String.format("Error occurred while executing get-secret-value request: %s",
-                        e.getMessage());
+                String errorMsg = "Error occurred while executing get-secret-value request: "
+                        + Objects.requireNonNullElse(e.getMessage(), "Unknown error");
                 return CommonUtils.createError(errorMsg, e);
             }
         });
@@ -161,8 +163,8 @@ public class NativeClientAdaptor {
                         .batchGetSecretValue(batchGetSecretValueRequest);
                 return CommonUtils.getBatchGetSecretValueResponse(getSecretValueResponse);
             } catch (Exception e) {
-                String errorMsg = String.format("Error occurred while executing batch-get-secret-value request: %s",
-                        e.getMessage());
+                String errorMsg = "Error occurred while executing batch-get-secret-value request: "
+                        + Objects.requireNonNullElse(e.getMessage(), "Unknown error");
                 return CommonUtils.createError(errorMsg, e);
             }
         });
@@ -175,13 +177,19 @@ public class NativeClientAdaptor {
      * @return A Ballerina `secretmanager:Error` if failed to close the underlying resources.
      */
     public static Object close(BObject bAwsSecretMngClient) {
-        SecretsManagerClient nativeClient = (SecretsManagerClient) bAwsSecretMngClient
-                .getNativeData(Constants.NATIVE_CLIENT);
+        if (!(bAwsSecretMngClient.getNativeData(Constants.NATIVE_CLIENT_CLOSED) instanceof AtomicBoolean closed)
+                || !closed.compareAndSet(false, true)) {
+            return null;
+        }
+        Object client = bAwsSecretMngClient.getNativeData(Constants.NATIVE_CLIENT);
         try {
-            nativeClient.close();
+            if (client instanceof SecretsManagerClient nativeClient) {
+                nativeClient.close();
+            }
+            bAwsSecretMngClient.addNativeData(Constants.NATIVE_CLIENT, null);
         } catch (Exception e) {
-            String errorMsg = String.format("Error occurred while closing the AWS secret manager client: %s",
-                    e.getMessage());
+            String errorMsg = "Error occurred while closing the AWS secret manager client: "
+                    + Objects.requireNonNullElse(e.getMessage(), "Unknown error");
             return CommonUtils.createError(errorMsg, e);
         }
         return null;

@@ -16,5 +16,3 @@ jobs:
     secrets: inherit
     with:
       repo-name: module-ballerinax-aws.secretmanager
-      additional-build-flags: "-x test"
-      additional-test-flags: "-x test"
