@@ -88,15 +88,7 @@ secretmanager:Client secretmanager = check new ({
 
 #### Default credential provider chain
 
-The standard default credential provider chain, trying each of the following in order and taking the first source that yields credentials:
-
-1. JVM system properties
-2. Environment variables (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`, and `AWS_WEB_IDENTITY_TOKEN_FILE` if set)
-3. The shared config/credentials file's active profile (`AWS_PROFILE`, or `default` if unset) — which may itself resolve via SSO, an external process, or a chained `AssumeRole` call, depending on that profile's configuration
-4. Container credentials (ECS/EKS)
-5. EC2 instance profile (IMDS)
-
-This is the recommended option when the application runs on AWS infrastructure, since no long-lived credentials need to be stored with the application.
+Resolves credentials automatically from the AWS SDK's default chain. This is the recommended option when the application runs on AWS infrastructure, since no long-lived credentials need to be stored with the application.
 
 ```ballerina
 import ballerinax/aws.auth;

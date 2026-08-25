@@ -385,6 +385,61 @@ function testTagFiltersAreCaseSensitiveAndAnchored() returns error? {
             string `a mixed-case tag-value matched ${(wrongValueCase.secretValues ?: []).length()} secret(s)`);
 }
 
+// `all` searches every filterable field, not just the name. Each value below is chosen to sit in exactly one field,
+// so a match proves that field is reached — none of them would match under a name-only search.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testAllFilterSearchesEveryField() returns error? {
+    // Description: shared by both tagged fixtures, absent from the minimal one.
+    check assertAllFilterMatches("aws.secretmanager tests", 2);
+    // Owning service.
+    check assertAllFilterMatches("owning-service", 2);
+    // Primary region.
+    check assertAllFilterMatches("us-east-1", 2);
+    // A tag key only the richer fixture carries.
+    check assertAllFilterMatches(MOCK_SECOND_TAG_KEY, 1);
+    // A tag value only the richer fixture carries.
+    check assertAllFilterMatches(MOCK_SECOND_TAG_VALUE, 1);
+    // And the name, which is all the filter used to look at.
+    check assertAllFilterMatches("binary", 1);
+}
+
+// The three field-specific keys that had no branch at all, so every request naming one matched nothing.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testFieldSpecificFiltersForConditionalFields() returns error? {
+    check assertFilterMatches("description", "Mock secret", 2);
+    check assertFilterMatches("owning-service", "mock-owning", 2);
+    check assertFilterMatches("primary-region", "us-east", 2);
+
+    // Still prefix-anchored, unlike `all`: this substring sits mid-field.
+    check assertFilterMatches("owning-service", "owning-service", 0);
+}
+
+// `all` matches anywhere in a field; the field-specific keys match only at the start. This is the one asymmetry
+// between them, so it is worth pinning rather than leaving to the reader.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testAllFilterMatchesMidFieldWhereNameDoesNot() returns error? {
+    check assertAllFilterMatches("app/credentials", 1);
+    check assertFilterMatches("name", "app/credentials", 0);
+}
+
+function assertAllFilterMatches(string value, int expected) returns error? {
+    return assertFilterMatches("all", value, expected);
+}
+
+// Runs one filter and asserts how many secrets it returned. An empty result arrives as an absent `secretValues`
+// rather than an empty array, so zero is checked against that.
+function assertFilterMatches(FilterKey key, string value, int expected) returns error? {
+    BatchGetSecretValueResponse response = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: key, values: [value]}]);
+    SecretValue[] secretValues = response.secretValues ?: [];
+    if secretValues.length() != expected {
+        string names = (from SecretValue secret in secretValues
+            select secret.name).toString();
+        test:assertFail(string `filter ${key}='${value}' matched ${secretValues.length()} secret(s) ` +
+                string `${names}, expected ${expected}`);
+    }
+}
+
 // A token the service never issued has to be rejected, not quietly answered with the first page. The silent-fallback
 // version of this made a mangled token indistinguishable from a token that paged to the wrong place.
 @test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}

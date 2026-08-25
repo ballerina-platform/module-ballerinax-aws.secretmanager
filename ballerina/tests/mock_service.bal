@@ -349,8 +349,8 @@ isolated function batchByIds(json[] secretIdList) returns http:Response {
     return awsJsonResponse(response);
 }
 
-// Addressing by filter. Only `tag-key` and `name` are implemented — between them they cover the connector's filter
-// mapping, and the rest differ only in which field the service compares.
+// Addressing by filter. Every key in the connector's `FilterKey` union is implemented: the field-specific ones as
+// case-sensitive prefix matches on their own field, and `all` as a search across all of them.
 isolated function batchByFilters(json[] filters, int? maxResults, string? nextToken) returns http:Response {
     MockSecret[] matched = [];
     foreach MockSecret secret in mockSecrets {
@@ -441,11 +441,48 @@ isolated function filterMatches(MockSecret secret, string key, string value) ret
         "name" => {
             return secret.name.startsWith(value);
         }
+        "description" => {
+            return startsWithOrFalse(secret.description, value);
+        }
+        "owning-service" => {
+            return startsWithOrFalse(secret.owningService, value);
+        }
+        "primary-region" => {
+            return startsWithOrFalse(secret.primaryRegion, value);
+        }
         "all" => {
-            return secret.name.includes(value);
+            // `all` searches every filterable field rather than only the name, so a secret that matches any
+            // field-specific key matches `all` too. It is the one key that matches anywhere in a field rather than at
+            // the start, which is what makes it a catch-all.
+            foreach string 'field in searchableFields(secret) {
+                if 'field.includes(value) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
     return false;
+}
+
+// An absent optional field matches nothing, rather than matching an empty prefix.
+isolated function startsWithOrFalse(string? candidate, string value) returns boolean =>
+    candidate is string && candidate.startsWith(value);
+
+// Every field the `all` key searches: the ones each field-specific key addresses. Absent optional fields contribute
+// nothing.
+isolated function searchableFields(MockSecret secret) returns string[] {
+    string[] fields = [secret.name];
+    foreach string? optionalField in [secret.description, secret.owningService, secret.primaryRegion] {
+        if optionalField is string {
+            fields.push(optionalField);
+        }
+    }
+    foreach [string, string] [tagKey, tagValue] in secret.tags.entries() {
+        fields.push(tagKey);
+        fields.push(tagValue);
+    }
+    return fields;
 }
 
 // The offset a token encodes, or `()` when the token is not one this mock handed out — a wrong prefix, no `-N` suffix,
