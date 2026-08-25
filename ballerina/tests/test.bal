@@ -207,6 +207,32 @@ function testGetSecretValueByVersionId() returns error? {
     test:assertEquals(secret.value, MOCK_PREVIOUS_SECRET_STRING);
 }
 
+// `SecretVersionSelector` lets both selectors be set at once, and the connector puts both on the request. The service
+// accepts that as long as the two refer to the same version, so a consistent pair has to resolve rather than be
+// rejected — and reaching the right version proves both selectors travelled, which neither single-selector test shows.
+@test:Config {groups: ["getSecretValue"], enable: !isLiveServer}
+function testGetSecretValueByMatchingVersionIdAndStage() returns error? {
+    SecretValue secret = check secretmanagerClient->getSecretValue(
+            MOCK_SECRET_NAME, versionId = MOCK_PREVIOUS_VERSION_ID, versionStage = AWSPREVIOUS);
+    test:assertEquals(secret.versionId, MOCK_PREVIOUS_VERSION_ID);
+    test:assertEquals(secret.value, MOCK_PREVIOUS_SECRET_STRING);
+}
+
+// The other half of the same rule: two selectors that name different versions are a contradiction the service
+// rejects, rather than one of them silently winning.
+@test:Config {groups: ["getSecretValue"], enable: !isLiveServer}
+function testMismatchedVersionSelectorsAreRejected() returns error? {
+    SecretValue|Error secret = secretmanagerClient->getSecretValue(
+            MOCK_SECRET_NAME, versionId = MOCK_PREVIOUS_VERSION_ID, versionStage = AWSCURRENT);
+    if secret !is Error {
+        test:assertFail(string `a versionId naming the previous version with versionStage AWSCURRENT resolved to ` +
+                secret.versionId);
+    }
+    aws:ErrorDetails details = secret.detail();
+    test:assertEquals(details.httpStatusCode, 400);
+    test:assertEquals(details.errorCode, INVALID_PARAMETER);
+}
+
 // `SecretValue.value` is `byte[]|string`. A value the service stored as `SecretBinary` is the only way to reach the
 // `byte[]` arm — a connector that decoded everything as text would either corrupt these bytes or fail here.
 @test:Config {groups: ["getSecretValue"]}
@@ -291,6 +317,97 @@ function testBatchGetSecretValuePaginates() returns error? {
     }
     test:assertEquals(secondPage.length(), 1);
     test:assertNotEquals(secondPage[0].name, firstPage[0].name, "the nextToken was not honoured");
+}
+
+// A filter value is a prefix of the tag key, not the whole key. Both tagged fixtures carry `purpose`, so a prefix of
+// it has to reach both — an exact-match filter would need the full key and would still pass, which is why the
+// assertion is on a strict prefix rather than the key itself.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testTagKeyFilterMatchesOnPrefix() returns error? {
+    BatchGetSecretValueResponse response = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-key", values: ["purp"]}]);
+    SecretValue[]? secretValues = response.secretValues;
+    if secretValues is () {
+        test:assertFail("a tag-key prefix matched nothing");
+    }
+    test:assertEquals(secretValues.length(), 2);
+
+    // A key only the richer fixture carries, so the prefix has to discriminate rather than match everything.
+    BatchGetSecretValueResponse narrowed = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-key", values: ["own"]}]);
+    SecretValue[]? narrowedValues = narrowed.secretValues;
+    if narrowedValues is () {
+        test:assertFail("the tag-key prefix 'own' matched nothing");
+    }
+    test:assertEquals(narrowedValues.length(), 1);
+    test:assertEquals(narrowedValues[0].name, MOCK_SECRET_NAME);
+}
+
+// The same rule on the tag's value.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testTagValueFilterMatchesOnPrefix() returns error? {
+    BatchGetSecretValueResponse response = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-value", values: ["unit"]}]);
+    SecretValue[]? secretValues = response.secretValues;
+    if secretValues is () {
+        test:assertFail("a tag-value prefix matched nothing");
+    }
+    test:assertEquals(secretValues.length(), 2);
+
+    BatchGetSecretValueResponse narrowed = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-value", values: ["baller"]}]);
+    SecretValue[]? narrowedValues = narrowed.secretValues;
+    if narrowedValues is () {
+        test:assertFail("the tag-value prefix 'baller' matched nothing");
+    }
+    test:assertEquals(narrowedValues.length(), 1);
+    test:assertEquals(narrowedValues[0].name, MOCK_SECRET_NAME);
+}
+
+// Prefix matching is not a licence to match loosely: the comparison stays case-sensitive, and a prefix of nothing in
+// particular matches nothing. An empty `secretValues` is reported as an absent field rather than an empty array.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testTagFiltersAreCaseSensitiveAndAnchored() returns error? {
+    BatchGetSecretValueResponse wrongCase = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-key", values: ["PURPOSE"]}]);
+    test:assertTrue(wrongCase.secretValues is (),
+            string `an upper-case tag-key matched ${(wrongCase.secretValues ?: []).length()} secret(s)`);
+
+    // A substring that is not a prefix — `urpose` occurs inside `purpose` but does not start it.
+    BatchGetSecretValueResponse midWord = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-key", values: ["urpose"]}]);
+    test:assertTrue(midWord.secretValues is (),
+            string `a mid-word tag-key matched ${(midWord.secretValues ?: []).length()} secret(s)`);
+
+    BatchGetSecretValueResponse wrongValueCase = check secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-value", values: ["Unit-Test"]}]);
+    test:assertTrue(wrongValueCase.secretValues is (),
+            string `a mixed-case tag-value matched ${(wrongValueCase.secretValues ?: []).length()} secret(s)`);
+}
+
+// A token the service never issued has to be rejected, not quietly answered with the first page. The silent-fallback
+// version of this made a mangled token indistinguishable from a token that paged to the wrong place.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testInvalidNextTokenIsRejected() returns error? {
+    BatchGetSecretValueResponse|Error response = secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-key", values: [MOCK_TAG_KEY]}], nextToken = "not-a-real-token");
+    if response !is Error {
+        test:assertFail(string `a fabricated nextToken returned ` +
+                (response.secretValues ?: []).length().toString() + " secret value(s) instead of failing");
+    }
+    test:assertEquals(response.detail().httpStatusCode, 400);
+}
+
+// A token carrying the right prefix but an unusable offset is just as invalid — the prefix check alone let this
+// through as offset 0.
+@test:Config {groups: ["batchGetSecretValue"], enable: !isLiveServer}
+function testMalformedNextTokenOffsetIsRejected() returns error? {
+    BatchGetSecretValueResponse|Error response = secretmanagerClient->batchGetSecretValue(
+            filters = [{'key: "tag-key", values: [MOCK_TAG_KEY]}], nextToken = MOCK_NEXT_TOKEN + "-not-a-number");
+    if response !is Error {
+        test:assertFail("a nextToken with a non-numeric offset was accepted");
+    }
+    test:assertEquals(response.detail().httpStatusCode, 400);
 }
 
 // One real ID and one missing one in the same request. The service answers 200 with the good value in `secretValues`

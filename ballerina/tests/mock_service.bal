@@ -277,11 +277,10 @@ isolated function getSecretValueResponse(json payload) returns http:Response {
 
     string? requestedVersionId = optionalString(payload, "VersionId");
     string? requestedVersionStage = optionalString(payload, "VersionStage");
-    if requestedVersionId is string && requestedVersionStage is string {
-        return awsErrorResponse(400, INVALID_PARAMETER,
-                "You can specify either VersionStage or VersionId, but not both");
-    }
 
+    // Both selectors together are accepted as long as they name the same version — the service requires that they
+    // "refer to the same secret version" rather than rejecting the pair outright. `selectVersion` resolves by ID when
+    // one is given, so the stage is checked against the version that ID resolved to.
     MockSecretVersion? version = selectVersion(secret, requestedVersionId, requestedVersionStage);
     if version is () {
         // The secret exists but the requested version does not — the service's own distinction, and the only way to
@@ -289,6 +288,11 @@ isolated function getSecretValueResponse(json payload) returns http:Response {
         string requested = requestedVersionId ?: (requestedVersionStage ?: "AWSCURRENT");
         return awsErrorResponse(400, RESOURCE_NOT_FOUND,
                 string `Secrets Manager can't find the specified secret version '${requested}'.`);
+    }
+    if requestedVersionId is string && requestedVersionStage is string
+            && version.versionStages.indexOf(requestedVersionStage) is () {
+        return awsErrorResponse(400, INVALID_PARAMETER,
+                "VersionId and VersionStage must refer to the same secret version");
     }
     return awsJsonResponse(secretValuePayload(secret, version));
 }
@@ -357,10 +361,16 @@ isolated function batchByFilters(json[] filters, int? maxResults, string? nextTo
     // A stable order, so paging is deterministic.
     MockSecret[] ordered = matched.sort("ascending", secret => secret.name);
 
-    // The token is the number of entries already served, so feeding it back has to skip them.
-    int offset = nextToken is string && nextToken.startsWith(MOCK_NEXT_TOKEN) ? tokenOffset(nextToken) : 0;
-    if offset > ordered.length() {
-        return awsErrorResponse(400, INVALID_REQUEST, "The NextToken is invalid.");
+    // The token is the number of entries already served, so feeding it back has to skip them. A token this mock never
+    // issued is rejected rather than quietly serving the first page: the real service reports a bad token, and a
+    // silent fallback would make a connector that mangled the token look like one that merely paged wrong.
+    int offset = 0;
+    if nextToken is string {
+        int? parsed = tokenOffset(nextToken);
+        if parsed is () || parsed > ordered.length() {
+            return awsErrorResponse(400, INVALID_REQUEST, "The NextToken is invalid.");
+        }
+        offset = parsed;
     }
     MockSecret[] page = ordered.slice(offset);
     int pageSize = maxResults ?: page.length();
@@ -407,16 +417,28 @@ isolated function matchesAllFilters(MockSecret secret, json[] filters) returns b
     return true;
 }
 
+// A filter value is a case-sensitive prefix of the field it is compared against, whichever field that is — so
+// `tag-key` and `tag-value` match the same way `name` does, against any one of the secret's tags. `startsWith` is
+// case-sensitive already, so the case rule needs nothing beyond using it.
 isolated function filterMatches(MockSecret secret, string key, string value) returns boolean {
     match key {
         "tag-key" => {
-            return secret.tags.hasKey(value);
+            foreach string tagKey in secret.tags.keys() {
+                if tagKey.startsWith(value) {
+                    return true;
+                }
+            }
+            return false;
         }
         "tag-value" => {
-            return secret.tags.toArray().indexOf(value) !is ();
+            foreach string tagValue in secret.tags {
+                if tagValue.startsWith(value) {
+                    return true;
+                }
+            }
+            return false;
         }
         "name" => {
-            // The service treats a filter value as a prefix.
             return secret.name.startsWith(value);
         }
         "all" => {
@@ -426,13 +448,17 @@ isolated function filterMatches(MockSecret secret, string key, string value) ret
     return false;
 }
 
-isolated function tokenOffset(string nextToken) returns int {
-    int? dash = nextToken.lastIndexOf("-");
-    if dash is () {
-        return 0;
+// The offset a token encodes, or `()` when the token is not one this mock handed out — a wrong prefix, no `-N` suffix,
+// a suffix that is not a number, or a negative one.
+isolated function tokenOffset(string nextToken) returns int? {
+    if !nextToken.startsWith(MOCK_NEXT_TOKEN + "-") {
+        return ();
     }
-    int|error offset = int:fromString(nextToken.substring(dash + 1));
-    return offset is int ? offset : 0;
+    int|error offset = int:fromString(nextToken.substring((MOCK_NEXT_TOKEN + "-").length()));
+    if offset is error || offset < 0 {
+        return ();
+    }
+    return offset;
 }
 
 // `GetSecretValue` and `BatchGetSecretValue` return the same entry shape, so both go through this.
