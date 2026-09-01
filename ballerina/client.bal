@@ -22,19 +22,14 @@ public isolated client class Client {
 
     # Initialize the Ballerina AWS Secret Manager client.
     # ```ballerina
-    # secretmanager:Client secretmanager = check new(region = secretmanager:US_EAST_1, auth = {
+    # secretmanager:Client secretmanager = check new (region = aws:US_EAST_1, auth = {
     #   accessKeyId: "<aws-access-key>",
     #   secretAccessKey: "<aws-secret-key>"
     # });
     # ```
-    # Or using the default credential provider chain (supports EC2, ECS/Fargate, env vars, etc.):
-    # ```ballerina
-    # secretmanager:Client secretmanager = check new(region = secretmanager:US_EAST_1,
-    #   auth = secretmanager:DEFAULT_CREDENTIALS);
-    # ```
     #
-    # + configs - The AWS Secret Manager client configurations
-    # + return - The `secretmanager:Client` or a `secretmanager:Error` if the initialization failed
+    # + configs - The connection configurations
+    # + return - A `secretmanager:Error` if the initialization failed
     public isolated function init(*ConnectionConfig configs) returns Error? {
         return self.externInit(configs);
     }
@@ -126,11 +121,11 @@ public isolated client class Client {
 
     # Closes the AWS Secret Manager client resources.
     # ```ballerina
-    # check secretmanager->close();
+    # check secretmanager.close();
     # ```
     #
-    # + return - A `secretmanager:Error` if there is an error while closing the client resources or else nil
-    isolated remote function close() returns Error? =
+    # + return - An Error if there is an error while closing the client resources
+    public isolated function close() returns Error? =
     @java:Method {
         'class: "io.ballerina.lib.aws.secretmanager.NativeClientAdaptor"
     } external;

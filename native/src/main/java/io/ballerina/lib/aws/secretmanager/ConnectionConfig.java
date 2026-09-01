@@ -18,46 +18,39 @@
 
 package io.ballerina.lib.aws.secretmanager;
 
+import io.ballerina.lib.aws.auth.ProviderFactory;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-
-import java.util.List;
 
 /**
  * {@code ConnectionConfig} contains the java representation of the Ballerina AWS Secret Manager client configurations.
  *
- * @param region The AWS region with which the connector should communicate.
- * @param auth   The authentication configurations for the AWS Secret Manager service
+ * @param region              the AWS region the client communicates with
+ * @param credentialsProvider the resolved AWS credentials provider
+ * @param endpointConfig      the optional endpoint configuration ({@code null} when unset)
  */
-public record ConnectionConfig(Region region, AuthConfig auth) {
-    private static final List<Region> AWS_GLOBAL_REGIONS = List.of(
-            Region.AWS_GLOBAL, Region.AWS_CN_GLOBAL, Region.AWS_US_GOV_GLOBAL, Region.AWS_ISO_GLOBAL,
-            Region.AWS_ISO_B_GLOBAL);
-    private static final BString REGION = StringUtils.fromString("region");
-    private static final BString AUTH = StringUtils.fromString("auth");
+public record ConnectionConfig(Region region, AwsCredentialsProvider credentialsProvider,
+        BMap<BString, Object> endpointConfig) {
+    private static final BString CONNECTION_CONFIG_REGION = StringUtils.fromString("region");
+    private static final BString CONNECTION_CONFIG_AUTH_CONFIG = StringUtils.fromString("auth");
+    private static final BString CONNECTION_CONFIG_ENDPOINT = StringUtils.fromString("endpoint");
 
-    @SuppressWarnings("unchecked")
-    public ConnectionConfig(BMap<BString, Object> configurations) {
-        this(
-                getRegion(configurations),
-                getAuth(configurations.get(AUTH))
-        );
+    public ConnectionConfig(BMap<BString, Object> bConnectionConfig) {
+        this(getRegion(bConnectionConfig),
+                ProviderFactory.buildProvider(bConnectionConfig.get(CONNECTION_CONFIG_AUTH_CONFIG)),
+                getEndpointConfig(bConnectionConfig));
     }
 
-    private static Region getRegion(BMap<BString, Object> configurations) {
-        String region = configurations.getStringValue(REGION).getValue();
-        return AWS_GLOBAL_REGIONS.stream()
-                .filter(gr -> gr.id().equals(region)).findFirst().orElse(Region.of(region));
+    private static Region getRegion(BMap<BString, Object> bConnectionConfig) {
+        return Region.of(bConnectionConfig.getStringValue(CONNECTION_CONFIG_REGION).getValue());
     }
 
     @SuppressWarnings("unchecked")
-    private static AuthConfig getAuth(Object authConfig) {
-        if (authConfig instanceof BMap) {
-            return new StaticAuthConfig((BMap<BString, Object>) authConfig);
-        }
-        return new AuthConfig() {
-        };
+    private static BMap<BString, Object> getEndpointConfig(BMap<BString, Object> bConnectionConfig) {
+        // The `endpoint` field is optional; null when not configured.
+        return (BMap<BString, Object>) bConnectionConfig.getMapValue(CONNECTION_CONFIG_ENDPOINT);
     }
 }

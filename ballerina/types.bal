@@ -16,79 +16,22 @@
 
 import ballerina/constraint;
 import ballerina/time;
+import ballerinax/aws;
+import ballerinax/aws.auth;
 
 # Represents the Client configurations for AWS Secret Manager service.
 public type ConnectionConfig record {|
-    # The AWS region with which the connector should communicate
-    Region region;
-    # The authentication configurations for the AWS Secret Manager service
-    StaticAuthConfig|EC2_IAM_ROLE|DEFAULT_CREDENTIALS auth;
-|};
-
-# An Amazon Web Services region that hosts a set of Amazon services.
-public enum Region {
-    AF_SOUTH_1 = "af-south-1",
-    AP_EAST_1 = "ap-east-1",
-    AP_NORTHEAST_1 = "ap-northeast-1",
-    AP_NORTHEAST_2 = "ap-northeast-2",
-    AP_NORTHEAST_3 = "ap-northeast-3",
-    AP_SOUTH_1 = "ap-south-1",
-    AP_SOUTH_2 = "ap-south-2",
-    AP_SOUTHEAST_1 = "ap-southeast-1",
-    AP_SOUTHEAST_2 = "ap-southeast-2",
-    AP_SOUTHEAST_3 = "ap-southeast-3",
-    AP_SOUTHEAST_4 = "ap-southeast-4",
-    AWS_CN_GLOBAL = "aws-cn-global",
-    AWS_GLOBAL = "aws-global",
-    AWS_ISO_GLOBAL = "aws-iso-global",
-    AWS_ISO_B_GLOBAL = "aws-iso-b-global",
-    AWS_US_GOV_GLOBAL = "aws-us-gov-global",
-    CA_WEST_1 = "ca-west-1",
-    CA_CENTRAL_1 = "ca-central-1",
-    CN_NORTH_1 = "cn-north-1",
-    CN_NORTHWEST_1 = "cn-northwest-1",
-    EU_CENTRAL_1 = "eu-central-1",
-    EU_CENTRAL_2 = "eu-central-2",
-    EU_ISOE_WEST_1 = "eu-isoe-west-1",
-    EU_NORTH_1 = "eu-north-1",
-    EU_SOUTH_1 = "eu-south-1",
-    EU_SOUTH_2 = "eu-south-2",
-    EU_WEST_1 = "eu-west-1",
-    EU_WEST_2 = "eu-west-2",
-    EU_WEST_3 = "eu-west-3",
-    IL_CENTRAL_1 = "il-central-1",
-    ME_CENTRAL_1 = "me-central-1",
-    ME_SOUTH_1 = "me-south-1",
-    SA_EAST_1 = "sa-east-1",
-    US_EAST_1 = "us-east-1",
-    US_EAST_2 = "us-east-2",
-    US_GOV_EAST_1 = "us-gov-east-1",
-    US_GOV_WEST_1 = "us-gov-west-1",
-    US_ISOB_EAST_1 = "us-isob-east-1",
-    US_ISO_EAST_1 = "us-iso-east-1",
-    US_ISO_WEST_1 = "us-iso-west-1",
-    US_WEST_1 = "us-west-1",
-    US_WEST_2 = "us-west-2"
-}
-
-# Represents the default AWS credential chain based authentication.
-# Automatically resolves credentials from environment variables, ECS container credentials,
-# EC2 instance profiles, and other standard AWS credential sources.
-public const DEFAULT_CREDENTIALS = "DEFAULT_CREDENTIALS";
-
-# Represents the EC2 instance profile based authentication.
-# Resolves credentials from the IAM role attached to the EC2 instance.
-public const EC2_IAM_ROLE = "EC2_IAM_ROLE";
-
-# Represents the static authentication configurations for AWS Secret Manager service.
-public type StaticAuthConfig record {|
-    # The AWS access key, used to identify the user interacting with AWS
-    string accessKeyId;
-    # The AWS secret access key, used to authenticate the user interacting with AWS
-    string secretAccessKey;
-    # The AWS session token, retrieved from an AWS token service, used for authenticating 
-    # a user with temporary permission to a resource
-    string sessionToken?;
+    # Authentication configuration: any standard credential source supported by
+    # AWS — static credentials, an AWS profile, STS assume-role,
+    # web identity (OIDC), IAM Identity Center (SSO), an external credential
+    # process, or the default credential provider chain
+    auth:AuthConfig auth;
+    # AWS region: an `aws:Region` enum member or a plain region
+    # string (e.g., `"us-east-1"`) for regions not yet in the enum
+    aws:Region|string region;
+    # Optional endpoint options: FIPS/dualstack variants, or a custom
+    # endpoint override (e.g. LocalStack, VPC interface endpoints)
+    aws:EndpointConfig endpoint?;
 |};
 
 # The ARN or name of the secret.
@@ -104,7 +47,7 @@ public type StaticAuthConfig record {|
 }
 public type SecretId string;
 
-# Represents the results retrieved from `GetEntitlements` operation.
+# Represents the details of a secret, excluding the encrypted secret value.
 public type DescribeSecretResponse record {|
     # The ARN of the secret
     string arn;
@@ -112,8 +55,8 @@ public type DescribeSecretResponse record {|
     time:Utc createdDate;
     # The date the secret is scheduled for deletion
     time:Utc deletedDate?;
-    # The description of the secret
-    string description;
+    # The description of the secret. Absent when the secret has none
+    string description?;
     # The key ID or alias ARN of the AWS KMS key that Secrets Manager uses to encrypt the secret value
     string kmsKeyId?;
     # The date that the secret was last accessed in the Region
@@ -126,10 +69,12 @@ public type DescribeSecretResponse record {|
     string name;
     # The next rotation is scheduled to occur on or before this date
     time:Utc nextRotationDate?;
-    # The ID of the service that created this secret
-    string owningService;
-    # The Region the secret is in. If a secret is replicated to other Regions, the replicas are listed in `replicationStatus`
-    Region primaryRegion;
+    # The ID of the service that created this secret. Absent unless the secret is
+    # managed by another AWS service
+    string owningService?;
+    # The Region the secret is in. If a secret is replicated to other Regions, the replicas are listed in
+    # `replicationStatus`. Absent unless the secret is replicated
+    aws:Region|string primaryRegion?;
     # A list of the replicas of this secret and their status
     ReplicationStatus[] replicationStatus?;
     # Specifies whether automatic rotation is turned on for this secret
@@ -151,7 +96,7 @@ public type ReplicationStatus record {|
     # The date that the secret was last accessed in the Region
     time:Utc lastAccessedDate?;
     # The Region where replication occurs
-    Region region?;
+    aws:Region|string region?;
     # The replication status
     "InSync"|"Failed"|"InProgress" status?;
     # The status message
