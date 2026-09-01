@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add examples for AWS secrets manager usage
+
 ## [1.0.0] - 2026-09-01 
 
 This release revamps the connector's authentication and region configuration to use the shared
