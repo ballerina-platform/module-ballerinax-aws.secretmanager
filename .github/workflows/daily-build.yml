@@ -13,5 +13,5 @@ jobs:
       BALLERINA_BOT_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
     with:
       repo-name: module-ballerinax-aws.secretmanager
-      additional-build-flags: "-x test"
-      additional-test-flags: "-x test"
+      additional-build-flags: "-x test -x :aws.secretmanager-examples:build"
+      additional-test-flags: "-x test -x :aws.secretmanager-examples:test"
