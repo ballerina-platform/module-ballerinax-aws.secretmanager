@@ -15,7 +15,7 @@ configuration. It showcases;
 - Ballerina Swan Lake 2201.12.0 or later
 
 The caller needs `secretsmanager:GetSecretValue` on the secret, and `kms:Decrypt` on the KMS key encrypting it if that
-key is a customer managed one.
+key is a customer-managed one.
 
 ## Configuration
 
@@ -31,8 +31,8 @@ secretId = "<SECRET_NAME_OR_ARN>"
 
 `secretId` is the name or the ARN of a secret holding a JSON document with at least `username` and `password` — the
 shape Secrets Manager creates for a database secret. A secret managed for an RDS instance also carries `engine`,
-`host`, `port` and `dbname`, and the example prints those when they are present. There is no default: the example fails
-at startup if `secretId` is not configured.
+`host`, `port` and `dbname`, and the example prints those when they are present. Any other field the document holds is
+ignored rather than logged. There is no default: the example fails at startup if `secretId` is not configured.
 
 ## Run the example
 

@@ -31,8 +31,8 @@ for /f "tokens=2 delims== " %%A in ('findstr /r "^name" "%BAL_HOME_DIR%\Ballerin
 
 :: Push the package to the local repository
 cd /d "%BAL_HOME_DIR%"
-call bal pack
-call bal push --repository=local
+call bal pack || exit /b 1
+call bal push --repository=local || exit /b 1
 
 :: Remove the cache directories in the repositories
 for /d %%D in ("%BAL_CENTRAL_DIR%\cache-*") do (
@@ -54,7 +54,7 @@ if exist "%BAL_DESTINATION_DIR%" (
     rmdir /s /q "%BAL_DESTINATION_DIR%"
 )
 if exist "%BAL_SOURCE_DIR%" (
-    xcopy /e /i "%BAL_SOURCE_DIR%" "%BAL_DESTINATION_DIR%"
+    xcopy /e /i "%BAL_SOURCE_DIR%" "%BAL_DESTINATION_DIR%" || exit /b 1
 )
 echo Successfully updated the local central repositories
 

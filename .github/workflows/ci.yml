@@ -20,3 +20,4 @@ jobs:
     with:
       repo-name: module-ballerinax-aws.secretmanager
       additional-build-flags: "-x :aws.secretmanager-examples:build"
+      additional-test-flags: "-x :aws.secretmanager-examples:test"

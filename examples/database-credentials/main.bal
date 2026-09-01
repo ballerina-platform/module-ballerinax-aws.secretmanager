@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/data.jsondata;
 import ballerina/io;
 import ballerinax/aws.secretmanager;
 
@@ -54,7 +55,10 @@ public function main() returns error? {
     if rawValue !is string {
         return error(string `The secret '${secret.name}' holds binary data, not a JSON credential document.`);
     }
-    DatabaseSecret credentials = check rawValue.fromJsonStringWithType();
+    // `jsondata:parseString` projects the document onto the record: a field the
+    // record does not declare is dropped, where a direct conversion would instead
+    // fail on it.
+    DatabaseSecret credentials = check jsondata:parseString(rawValue);
 
     // Everything the secret carries except the password is safe to log.
     DatabaseSecret redacted = credentials.clone();
@@ -64,13 +68,19 @@ public function main() returns error? {
     // Rotation replaces the credentials without the application restarting, so a
     // client that suddenly fails to authenticate with `AWSCURRENT` can retry with
     // the version the label `AWSPREVIOUS` still points at. That label is absent
-    // until the secret has been rotated at least once, which is why the error is
-    // reported rather than propagated.
+    // until the secret has been rotated at least once.
     secretmanager:SecretValue|secretmanager:Error previous =
         secretManager->getSecretValue(secretId, versionStage = "AWSPREVIOUS");
-    if previous is secretmanager:Error {
-        io:println("No 'AWSPREVIOUS' version to fall back on: ", previous.message());
-    } else {
+    if previous is secretmanager:SecretValue {
         io:println(string `Previous version available for fallback: '${previous.versionId}'.`);
+    } else if previous.detail().errorCode == "ResourceNotFoundException" {
+        // Secrets Manager reports a staging label that no version carries as a
+        // missing resource, which here means the secret has yet to be rotated.
+        io:println("No 'AWSPREVIOUS' version to fall back on.");
+    } else {
+        // Any other failure — access denied, throttling, or one that happened
+        // before a response was received, leaving `errorCode` unset — says nothing
+        // about whether the label exists, so it is not reported as its absence.
+        return previous;
     }
 }
