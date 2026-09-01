@@ -15,4 +15,3 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       additional-build-flags: "-x :aws.secretmanager-examples:build"
-      additional-test-flags: "-x :aws.secretmanager-examples:test"
