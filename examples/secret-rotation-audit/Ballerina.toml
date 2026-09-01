@@ -1,0 +1,4 @@
+[package]
+org = "wso2"
+name = "secret_rotation_audit"
+version = "0.1.0"

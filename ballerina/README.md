@@ -99,3 +99,13 @@ secretmanager:Client secretmanager = check new ({
 ```
 
 > **Note:** Beyond the three options above, the `auth` field also accepts `auth:AssumeRoleConfig` (STS assume-role), `auth:WebIdentityConfig` (web identity / OIDC), `auth:SsoAuthConfig` (IAM Identity Center), and `auth:ProcessAuthConfig` (external credential process). See the [`Ballerina AWS`](https://central.ballerina.io/ballerinax/aws/latest) documentation for details.
+
+## Examples
+
+The `aws.secretmanager` connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/tree/main/examples).
+
+1. [Database credentials](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/tree/main/examples/database-credentials)
+   This example shows how to load a database credential from a secret, keep the password out of the logs, and check for a previous version to fall back on during rotation.
+
+2. [Secret rotation audit](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/tree/main/examples/secret-rotation-audit)
+   This example shows how to discover the secrets carrying a tag key and report which of them are outside a rotation SLA.

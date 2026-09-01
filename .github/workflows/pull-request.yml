@@ -14,4 +14,5 @@ jobs:
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
-      additional-test-flags: ${{ github.event.pull_request.head.repo.full_name != github.repository && '-x test' || ''}}
+      additional-build-flags: "-x :aws.secretmanager-examples:build"
+      additional-test-flags: "-x :aws.secretmanager-examples:test"

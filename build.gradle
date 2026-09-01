@@ -63,6 +63,7 @@ allprojects {
 task build {
     dependsOn(":aws.secretmanager-native:build")
     dependsOn(":aws.secretmanager-ballerina:build")
+    dependsOn(":aws.secretmanager-examples:build")
 }
 
 def moduleVersion = project.version.replace("-SNAPSHOT", "")
