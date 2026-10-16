@@ -1,7 +1,7 @@
 # Ballerina AWS Secrets Manager connector
 
 [![Build](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/ci.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/ci.yml)
-[![Trivy](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/trivy-scan.yml)
+[![Security Scan](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/security-scan.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/security-scan.yml)
 [![GraalVM Check](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/build-with-bal-test-graalvm.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/actions/workflows/build-with-bal-test-graalvm.yml)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-aws.secretmanager.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.secretmanager/commits/main)
 
