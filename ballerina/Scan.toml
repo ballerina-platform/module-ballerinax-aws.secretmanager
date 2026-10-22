@@ -1,5 +1,8 @@
 # ballerina:14 flags the local variable `SecretId|constraint:Error validatedSecretId = constraint:validate(secretId)`
 # in getSecretValue. The name only contains "secret"; the value is a caller-supplied secret identifier (ARN or name),
 # not a credential, and nothing is hard coded.
+# TODO: replace this rule exclusion with a targeted scan suppression (with a reason) once `bal scan` supports it
+# (planned for v0.13.0), and fix the false positives on the scan tool side: a secret-named identifier should only be
+# reported when it is assigned a fixed value.
 [rule]
 exclude = ["ballerina:14"]
