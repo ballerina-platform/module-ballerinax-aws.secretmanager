@@ -1,0 +1,9 @@
+# ballerina:14: flags `auth: {accessKeyId, secretAccessKey}` (configurables declared with `= ?`, supplied in Config.toml),
+# and identifiers that merely contain "secret" (secretNames, nextToken pagination token = ()). Nothing is hard coded.
+# ballerina/io:2: flags printing the configurables `region`, `tagKey` and `rotationSlaDays`. These are a public AWS region
+# name, a resource tag key and a day count, not credentials. The credentials (accessKeyId, secretAccessKey) are never printed.
+# TODO: replace this rule exclusion with a targeted scan suppression (with a reason) once `bal scan` supports it
+# (planned for v0.13.0), and fix the false positives on the scan tool side: a secret-named identifier should only be
+# reported when it is assigned a fixed value.
+[rule]
+exclude = ["ballerina:14", "ballerina/io:2"]
