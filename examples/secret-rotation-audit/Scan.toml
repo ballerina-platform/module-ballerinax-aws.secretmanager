@@ -1,0 +1,6 @@
+# ballerina:14: flags `auth: {accessKeyId, secretAccessKey}` (configurables declared with `= ?`, supplied in Config.toml),
+# and identifiers that merely contain "secret" (secretNames, nextToken pagination token = ()). Nothing is hard coded.
+# ballerina/io:2: flags printing the configurables `region`, `tagKey` and `rotationSlaDays`. These are a public AWS region
+# name, a resource tag key and a day count, not credentials. The credentials (accessKeyId, secretAccessKey) are never printed.
+[rule]
+exclude = ["ballerina:14", "ballerina/io:2"]

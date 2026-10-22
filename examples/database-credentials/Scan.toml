@@ -1,0 +1,5 @@
+# ballerina:14 flags `auth: {accessKeyId, secretAccessKey}` and the `secretId` argument. The keys are `configurable`
+# values declared with `= ?` and supplied by the user in Config.toml; `secretId` is an identifier, not a secret.
+# No credential is hard coded.
+[rule]
+exclude = ["ballerina:14"]
